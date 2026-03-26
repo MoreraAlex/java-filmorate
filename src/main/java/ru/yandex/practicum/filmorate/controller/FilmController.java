@@ -39,7 +39,7 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) throws ValidationException {
+    public Film create(@Valid @RequestBody Film film) {
         log.info("Creating film: {}", film);
         try {
             validate(film);
@@ -54,7 +54,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film newFilm) throws ValidationException, NotFoundException {
+    public Film update(@Valid @RequestBody Film newFilm) {
         log.info("Updating film: {}", newFilm);
         if (newFilm.getId() == null) {
             String warning = "Id должен быть указан";
@@ -92,7 +92,7 @@ public class FilmController {
         throw new NotFoundException(warning);
     }
 
-    private void validate(Film film) throws ValidationException {
+    private void validate(Film film) {
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
