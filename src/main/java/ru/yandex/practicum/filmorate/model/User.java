@@ -2,12 +2,16 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.enums.TypeFriendship;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 public class User {
     private Long id;
+    private Map<Long, TypeFriendship> friends = new HashMap<>();
 
     @NotNull(message = "Электронная почта не может быть пустой и должна содержать символ '@'")
     @Email(message = "Электронная почта не может быть пустой и должна содержать символ '@'")
