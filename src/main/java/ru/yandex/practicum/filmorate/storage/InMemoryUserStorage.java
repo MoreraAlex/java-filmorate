@@ -54,7 +54,7 @@ public class InMemoryUserStorage implements UserStorage {
                     newUser.setLogin(oldUser.getLogin());
                 }
                 if (newUser.getName() == null) {
-                    if (oldUser.getName().equals(oldUser.getLogin())) {
+                    if (oldUser.getName() == null || oldUser.getName().equals(oldUser.getLogin())) {
                         newUser.setName(newUser.getLogin());
                     } else {
                         newUser.setName(oldUser.getName());

@@ -60,7 +60,7 @@ public class InMemoryFilmStorage implements FilmStorage {
                 if (newFilm.getDescription() == null) {
                     newFilm.setDescription(oldFilm.getDescription());
                 }
-                if (newFilm.getDuration() == 0) {
+                if (newFilm.getDuration() <= 0) {
                     newFilm.setDuration(oldFilm.getDuration());
                 }
                 validate(newFilm);
