@@ -23,11 +23,11 @@ public class UserService {
         return userStorage.getAllUsers();
     }
 
-    public User create(User user) throws ValidationException {
+    public User create(User user) {
         return userStorage.addUser(user);
     }
 
-    public User update(User newUser) throws ValidationException, NotFoundException {
+    public User update(User newUser) {
         return userStorage.updateUser(newUser);
     }
 

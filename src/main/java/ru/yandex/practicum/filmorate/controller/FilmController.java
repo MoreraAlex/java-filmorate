@@ -41,14 +41,14 @@ public class FilmController {
     }
 
     @PostMapping
-    public ResponseEntity<Film> create(@Valid @RequestBody Film film) throws ValidationException {
+    public ResponseEntity<Film> create(@Valid @RequestBody Film film) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(filmService.create(film));
     }
 
     @PutMapping
-    public ResponseEntity<Film> update(@Valid @RequestBody Film newFilm) throws ValidationException, NotFoundException {
+    public ResponseEntity<Film> update(@Valid @RequestBody Film newFilm) {
         return ResponseEntity.ok(filmService.update(newFilm));
     }
 

@@ -24,7 +24,7 @@ public class InMemoryUserStorage implements UserStorage {
     private final Validator validator;
 
     @Override
-    public User addUser(User user) throws ValidationException {
+    public User addUser(User user) {
         log.info("Creating user: {}", user);
         try {
             validate(user);
@@ -39,7 +39,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(User newUser) throws ValidationException, NotFoundException {
+    public User updateUser(User newUser) {
         log.info("Updating user: {}", newUser);
         if (newUser.getId() == null) {
             String warning = "Id должен быть указан";
@@ -136,7 +136,7 @@ public class InMemoryUserStorage implements UserStorage {
                 });
     }
 
-    public void validate(User user) throws ValidationException {
+    public void validate(User user) {
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
 

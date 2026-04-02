@@ -25,7 +25,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final UserStorage userStorage;
 
     @Override
-    public Film addFilm(Film film) throws ValidationException {
+    public Film addFilm(Film film) {
         log.info("Creating film: {}", film);
         try {
             validate(film);
@@ -40,7 +40,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film updateFilm(Film newFilm) throws ValidationException, NotFoundException {
+    public Film updateFilm(Film newFilm) {
         log.info("Updating film: {}", newFilm);
         if (newFilm.getId() == null) {
             String warning = "Id должен быть указан";
@@ -119,7 +119,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Removed film like: {}", film);
     }
 
-    private void validate(Film film) throws ValidationException {
+    private void validate(Film film) {
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 

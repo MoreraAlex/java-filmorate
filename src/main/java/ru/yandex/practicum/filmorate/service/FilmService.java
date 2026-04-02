@@ -22,11 +22,11 @@ public class FilmService {
         return filmStorage.getAllFilms();
     }
 
-    public Film create(Film film) throws ValidationException {
+    public Film create(Film film) {
         return filmStorage.addFilm(film);
     }
 
-    public Film update(Film newFilm) throws ValidationException, NotFoundException {
+    public Film update(Film newFilm) {
         return filmStorage.updateFilm(newFilm);
     }
 

@@ -45,7 +45,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void filmController_create_mustBeValidationException() throws ValidationException {
+	void filmController_create_mustBeValidationException() {
 		Film film = new Film();
 		film.setName("Название фильма");
 		film.setReleaseDate(releaseDateOfFirstFilm);
@@ -149,7 +149,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void filmController_update_mustBeValidationException() throws ValidationException {
+	void filmController_update_mustBeValidationException() {
 		Film film = new Film();
 		film.setName("Название фильма");
 		film.setReleaseDate(releaseDateOfFirstFilm);
@@ -366,7 +366,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void userController_createWithIncorrectEmail_mustBeValidationException() throws ValidationException {
+	void userController_createWithIncorrectEmail_mustBeValidationException() {
 		User user = new User();
 		user.setLogin("login");
 		user.setBirthday(LocalDate.now().plusDays(-1));
@@ -394,7 +394,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void userController_createWithIncorrectLogin_mustBeValidationException() throws ValidationException {
+	void userController_createWithIncorrectLogin_mustBeValidationException() {
 		User user = new User();
 		user.setEmail("ss@ss.com");
 		user.setBirthday(LocalDate.now().plusDays(-1));
@@ -422,7 +422,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void userController_createWithIncorrectBirthday_mustBeValidationException() throws ValidationException {
+	void userController_createWithIncorrectBirthday_mustBeValidationException() {
 		User user = new User();
 		user.setEmail("ss@ss.com");
 		user.setLogin("login");
@@ -475,7 +475,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void userController_update_mustBeValidationException() throws ValidationException {
+	void userController_update_mustBeValidationException() {
 		User user = new User();
 		user.setLogin("login");
 		user.setEmail("aa@bb.com");
