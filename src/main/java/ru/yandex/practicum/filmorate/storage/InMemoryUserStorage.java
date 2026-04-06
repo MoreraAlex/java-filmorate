@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,13 +19,13 @@ public class InMemoryUserStorage implements UserStorage {
     private final AtomicLong idGenerator = new AtomicLong(0);
     private final Map<Long, User> users = new HashMap<>();
 
-    private final Validator validator;
+    private final ValidateUser validateUser;
 
     @Override
-    public User addUser(User user) {
+    public User addUser(User user) throws ValidationException {
         log.info("Creating user: {}", user);
         try {
-            validate(user);
+            validateUser.validate(user);
             user.setId(idGenerator.incrementAndGet());
             users.put(user.getId(), user);
             log.info("User created: {}", user);
@@ -39,7 +37,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(User newUser) {
+    public User updateUser(User newUser) throws ValidationException, NotFoundException {
         log.info("Updating user: {}", newUser);
         if (newUser.getId() == null) {
             String warning = "Id должен быть указан";
@@ -54,7 +52,7 @@ public class InMemoryUserStorage implements UserStorage {
                     newUser.setLogin(oldUser.getLogin());
                 }
                 if (newUser.getName() == null) {
-                    if (oldUser.getName() == null || oldUser.getName().equals(oldUser.getLogin())) {
+                    if (oldUser.getName().equals(oldUser.getLogin())) {
                         newUser.setName(newUser.getLogin());
                     } else {
                         newUser.setName(oldUser.getName());
@@ -66,7 +64,7 @@ public class InMemoryUserStorage implements UserStorage {
                 if (newUser.getBirthday() == null) {
                     newUser.setBirthday(oldUser.getBirthday());
                 }
-                validate(newUser);
+                validateUser.validate(newUser);
 
                 users.put(newUser.getId(), newUser);
                 log.info("User updated: {}", newUser);
@@ -88,7 +86,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(Long id) throws NotFoundException {
+    public User findUserById(Long id) throws NotFoundException {
         log.info("Get user by id: {}", id);
         return getUserByIdOrThrow(id);
     }
@@ -101,8 +99,8 @@ public class InMemoryUserStorage implements UserStorage {
             throw new ValidationException(warning);
         }
 
-        User user = getUserById(id);
-        User friend = getUserById(friendId);
+        User user = findUserById(id);
+        User friend = findUserById(friendId);
 
         user.getFriends().put(friendId, TypeFriendship.NOT_CONFIRMED);
         log.info("Added user: {} friend: {}", user, friend);
@@ -118,13 +116,42 @@ public class InMemoryUserStorage implements UserStorage {
             throw new ValidationException(warning);
         }
 
-        User user = getUserById(id);
-        User friend = getUserById(friendId);
+        User user = findUserById(id);
+        User friend = findUserById(friendId);
 
         user.getFriends().remove(friendId);
         log.info("Removed user: {} friend: {}", user, friend);
         friend.getFriends().remove(id);
         log.info("Removed user: {} friend: {}", friend, user);
+    }
+
+    @Override
+    public Collection<User> getUserFriends(Long id) throws NotFoundException {
+        User user = findUserById(id);
+        return user.getFriends().keySet().stream()
+                .map(this::findUserById)
+                .toList();
+    }
+
+    @Override
+    public Collection<User> getCommonFriends(Long id, Long otherId) throws NotFoundException {
+        log.info("getCommonFriends: id={}, otherId={}", id, otherId);
+        if (id.equals(otherId)) {
+            String warning = "id друга не может совпадать с id пользователя";
+            log.error("Remove friend: Validation exception: {}", warning);
+            throw new ValidationException(warning);
+        }
+
+        User user = findUserById(id);
+        User other = findUserById(otherId);
+
+        Set<Long> userFriends = user.getFriends().keySet();
+        Set<Long> otherFriends = other.getFriends().keySet();
+
+        return userFriends.stream()
+                .filter(otherFriends::contains)
+                .map(this::findUserById)
+                .toList();
     }
 
     private User getUserByIdOrThrow(Long id) {
@@ -134,18 +161,5 @@ public class InMemoryUserStorage implements UserStorage {
                     log.warn("getUserByIdOrThrow: NotFoundException: {}", message);
                     return new NotFoundException(message);
                 });
-    }
-
-    public void validate(User user) {
-
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-
-        if (!violations.isEmpty()) {
-            throw new ValidationException(violations.iterator().next().getMessage());
-        }
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
     }
 }

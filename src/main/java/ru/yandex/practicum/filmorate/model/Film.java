@@ -5,10 +5,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.enums.RatingMPA;
+import ru.yandex.practicum.filmorate.controller.MpaController;
 
+import javax.print.attribute.standard.MediaPrintableArea;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -17,8 +20,8 @@ public class Film {
     private final int maxLengthDescription = 200;
     private Long id;
     private Set<Long> likes = new HashSet<>();
-    private Set<Long> genres = new HashSet<>();
-    private RatingMPA ratingMPA;
+    private List<Genre> genres = new ArrayList<>();
+    private Mpa mpa;
 
     @NotBlank(message = "Название не может быть пустым")
     private String name;
