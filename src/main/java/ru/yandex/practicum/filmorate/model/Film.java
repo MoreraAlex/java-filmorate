@@ -5,9 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.controller.MpaController;
 
-import javax.print.attribute.standard.MediaPrintableArea;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
