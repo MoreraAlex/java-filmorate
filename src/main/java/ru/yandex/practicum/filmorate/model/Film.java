@@ -38,15 +38,16 @@ public class Film {
 
     public static Film randomGeneratedFilm() {
         final LocalDate releaseDateOfFirstFilm = LocalDate.of(1895, 12, 28);
+
         Mpa mpa = Mpa.builder()
-                .id(RandomGenerator.getDefault().nextInt(1, 6))
+                .id(RandomGenerator.getDefault().nextInt(1, 6)) // случайный рейтинг
                 .name("")
                 .build();
+
         Film film = new Film();
-        film.setName("Название фильма");
+        film.setName("Название фильма " + RandomGenerator.getDefault().nextInt(0, 1000));
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
-        film.setId(RandomGenerator.getDefault().nextLong());
         film.setMpa(mpa);
 
         return film;
