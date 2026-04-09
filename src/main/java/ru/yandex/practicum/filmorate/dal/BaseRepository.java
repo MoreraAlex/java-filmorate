@@ -55,7 +55,7 @@ public class BaseRepository<T> {
             }, keyHolder);
 
             if (keyHolder.getKeys().size() > 1) {
-                return (long) 1;
+                return 1;
             }
             Number id = keyHolder.getKey();
             if (id != null) {

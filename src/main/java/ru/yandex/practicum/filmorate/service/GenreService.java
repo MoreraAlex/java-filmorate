@@ -27,16 +27,11 @@ public class GenreService {
     public GenreDto findById(Long id) {
         return genreRepository.findById(id)
                 .map(GenreMapper::mapToGenreDto)
-                .orElseThrow(() ->  {
-                    String message = "Genre not found with id: " + id;
+                .orElseThrow(() -> {
+                    String message = "Не найден жанр со следующим id: " + id;
                     log.warn("findById: NotFoundException: {}", message);
                     return new NotFoundException(message);
                 });
     }
 
-    public List<GenreDto> findGenresByFilmId(Long filmId) {
-        return genreRepository.findFilmGenresByFilmId(filmId).stream()
-                .map(GenreMapper::mapToGenreDto)
-                .collect(Collectors.toList());
-    }
 }

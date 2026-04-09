@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.random.RandomGenerator;
 
 
 @Data
@@ -20,6 +21,8 @@ public class Film {
     private Set<Long> likes = new HashSet<>();
     private List<Genre> genres = new ArrayList<>();
     private Mpa mpa;
+    private final LocalDate releaseDateOfFirstFilm = LocalDate.of(1895, 12, 28);
+
 
     @NotBlank(message = "Название не может быть пустым")
     private String name;
@@ -32,4 +35,21 @@ public class Film {
 
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private int duration;
+
+    public static Film randomGeneratedFilm() {
+        final LocalDate releaseDateOfFirstFilm = LocalDate.of(1895, 12, 28);
+        Mpa mpa = Mpa.builder()
+                .id(RandomGenerator.getDefault().nextInt(1, 6))
+                .name("")
+                .build();
+        Film film = new Film();
+        film.setName("Название фильма");
+        film.setReleaseDate(releaseDateOfFirstFilm);
+        film.setDuration(120);
+        film.setId(RandomGenerator.getDefault().nextLong());
+        film.setMpa(mpa);
+
+        return film;
+    }
+
 }

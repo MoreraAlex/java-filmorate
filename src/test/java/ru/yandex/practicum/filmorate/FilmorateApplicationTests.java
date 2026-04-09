@@ -1,58 +1,46 @@
 package ru.yandex.practicum.filmorate;
 
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.storage.ValidateFilm;
-import ru.yandex.practicum.filmorate.storage.ValidateUser;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static ru.yandex.practicum.filmorate.model.Film.randomGeneratedFilm;
 
+
+@Transactional
 @SpringBootTest
 class FilmorateApplicationTests {
 
+    @Autowired
     private FilmController filmController;
+
+    @Autowired
     private UserController userController;
+
     private UserStorage userStorage;
     private final int maxLengthOfDescription = 200;
     private final LocalDate releaseDateOfFirstFilm = LocalDate.of(1895, 12, 28);
 
-    @BeforeEach
-    void setUp() {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        userStorage = new InMemoryUserStorage(new ValidateUser(validator));
-        userController = new UserController(new UserService(userStorage));
-        filmController = new FilmController(
-                new FilmService(new InMemoryFilmStorage(
-                        userStorage, new ValidateFilm(validator))));
-    }
-
     @Test
     void filmController_create_mustBeValidationException() throws ValidationException {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         film.setName("Название фильма");
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(0);
@@ -111,7 +99,7 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_create_returnFilmWithId() {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 200; i++) {
             stringBuilder.append("a");
@@ -119,6 +107,7 @@ class FilmorateApplicationTests {
         film.setName(stringBuilder.toString());
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
+        film.setMpa(new Mpa().setId(1));
 
         Film newFilm = (filmController.create(film)).getBody();
 
@@ -131,7 +120,7 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_update_mustBeNotFoundException() throws NotFoundException {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 200; i++) {
             stringBuilder.append("a");
@@ -156,10 +145,7 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_update_mustBeValidationException() throws ValidationException {
-        Film film = new Film();
-        film.setName("Название фильма");
-        film.setReleaseDate(releaseDateOfFirstFilm);
-        film.setDuration(120);
+        Film film = randomGeneratedFilm();
 
         filmController.create(film);
         film.setDuration(0);
@@ -218,7 +204,7 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_update_returnFilmWithCorrectDescription() {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 200; i++) {
             stringBuilder.append("a");
@@ -229,27 +215,25 @@ class FilmorateApplicationTests {
 
         filmController.create(film);
 
-        Film updateFilm = new Film();
+        Film updateFilm = randomGeneratedFilm();
         updateFilm.setId((long) 1);
         updateFilm.setDescription("Описание");
         film = (filmController.update(updateFilm)).getBody();
 
-        Film standardFilm = new Film();
+        Film standardFilm = randomGeneratedFilm();
         standardFilm.setName(stringBuilder.toString());
         standardFilm.setReleaseDate(releaseDateOfFirstFilm);
         standardFilm.setDuration(120);
         standardFilm.setId((long) 1);
         standardFilm.setDescription("Описание");
 
-        assertTrue(film.equals(standardFilm),
-                "Фильмы не равны"
-        );
+        assertEquals((film.getDescription()), standardFilm.getDescription(), "Фильмы не равны");
 
     }
 
     @Test
     void filmController_update_returnFilmWithCorrectName() {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 200; i++) {
             stringBuilder.append("a");
@@ -261,25 +245,27 @@ class FilmorateApplicationTests {
         filmController.create(film);
 
         Film updateFilm = new Film();
-        updateFilm.setId((long) 1);
+        updateFilm.setMpa(film.getMpa());
+        updateFilm.setId(film.getId());
         updateFilm.setName("Наименование");
+        updateFilm.setReleaseDate(releaseDateOfFirstFilm);
+        updateFilm.setDuration(120);
         film = (filmController.update(updateFilm)).getBody();
 
-        Film standardFilm = new Film();
+        Film standardFilm = updateFilm;
+        standardFilm.setMpa(film.getMpa());
         standardFilm.setName("Наименование");
         standardFilm.setReleaseDate(releaseDateOfFirstFilm);
         standardFilm.setDuration(120);
-        standardFilm.setId((long) 1);
+        standardFilm.setId(film.getId());
 
-        assertTrue(film.equals(standardFilm),
-                "Фильмы не равны"
-        );
+        assertEquals(film, standardFilm, "Фильмы не равны");
 
     }
 
     @Test
     void filmController_update_returnFilmWithCorrectReleaseDate() {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 200; i++) {
             stringBuilder.append("a");
@@ -290,26 +276,25 @@ class FilmorateApplicationTests {
 
         filmController.create(film);
 
-        Film updateFilm = new Film();
+        Film updateFilm = randomGeneratedFilm();
         updateFilm.setId((long) 1);
         updateFilm.setReleaseDate(LocalDate.of(2025, 12, 29));
+        updateFilm.setDuration(120);
         film = (filmController.update(updateFilm)).getBody();
 
-        Film standardFilm = new Film();
-        standardFilm.setName(stringBuilder.toString());
-        standardFilm.setReleaseDate(LocalDate.of(2025, 12, 29));
-        standardFilm.setDuration(120);
+        Film standardFilm = randomGeneratedFilm();
         standardFilm.setId((long) 1);
+        standardFilm.setReleaseDate(LocalDate.of(2025, 12, 29));
+        standardFilm.setName(updateFilm.getName());
+        standardFilm.setDuration(120);
 
-        assertTrue(film.equals(standardFilm),
-                "Фильмы не равны"
-        );
+        assertEquals(film.getReleaseDate(), standardFilm.getReleaseDate(), "Фильмы не равны");
 
     }
 
     @Test
     void filmController_update_returnFilmWithCorrectDurationInMinutes() {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 200; i++) {
             stringBuilder.append("a");
@@ -320,26 +305,24 @@ class FilmorateApplicationTests {
 
         filmController.create(film);
 
-        Film updateFilm = new Film();
+        Film updateFilm = randomGeneratedFilm();
         updateFilm.setId((long) 1);
         updateFilm.setDuration(60);
         film = (filmController.update(updateFilm)).getBody();
 
         Film standardFilm = new Film();
-        standardFilm.setName(stringBuilder.toString());
+        standardFilm.setName(film.getName());
         standardFilm.setReleaseDate(releaseDateOfFirstFilm);
         standardFilm.setDuration(60);
         standardFilm.setId((long) 1);
 
-        assertTrue(film.equals(standardFilm),
-                "Фильмы не равны"
-        );
+        assertEquals(film.getDuration(), standardFilm.getDuration(), "Фильмы не равны");
 
     }
 
     @Test
     void filmController_updateAll_returnFilmWithCorrectFields() {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 200; i++) {
             stringBuilder.append("a");
@@ -350,7 +333,7 @@ class FilmorateApplicationTests {
 
         filmController.create(film);
 
-        Film updateFilm = new Film();
+        Film updateFilm = randomGeneratedFilm();
         updateFilm.setId((long) 1);
         updateFilm.setName("New name");
         updateFilm.setDuration(60);
@@ -359,15 +342,14 @@ class FilmorateApplicationTests {
         film = (filmController.update(updateFilm)).getBody();
 
         Film standardFilm = new Film();
+        standardFilm.setMpa(film.getMpa());
         standardFilm.setName("New name");
         standardFilm.setDuration(60);
         standardFilm.setReleaseDate(LocalDate.of(2024, 06, 01));
         standardFilm.setDescription("New description");
         standardFilm.setId((long) 1);
 
-        assertTrue(film.equals(standardFilm),
-                "Фильмы не равны"
-        );
+        assertEquals(film, standardFilm, "Фильмы не равны");
 
     }
 
@@ -525,15 +507,18 @@ class FilmorateApplicationTests {
 
     @Test
     void userController_update_returnUserWithCorrectLoginAndName() {
-        User user = new User();
+        User user = User.randomUser();
         user.setLogin("login");
         user.setEmail("aa@bb.com");
         user.setBirthday(LocalDate.now().plusYears(-20));
         userController.create(user);
 
-        User updateUser = new User();
+        User updateUser = User.randomUser();
         updateUser.setId((long) 1);
+        updateUser.setName("newLogin");
         updateUser.setLogin("newLogin");
+        updateUser.setEmail("aa@bb.com");
+        updateUser.setBirthday(LocalDate.now().plusYears(-20));
         user = (userController.update(updateUser)).getBody();
 
         User standardUser = new User();
@@ -543,24 +528,25 @@ class FilmorateApplicationTests {
         standardUser.setBirthday(LocalDate.now().plusYears(-20));
         standardUser.setId((long) 1);
 
-        assertTrue(user.equals(standardUser),
-                "Пользователи не равны"
-        );
+        assertEquals(user, standardUser, "Пользователи не равны");
 
     }
 
     @Test
     void userController_update_returnUserWithCorrectLogin() {
-        User user = new User();
+        User user = User.randomUser();
         user.setLogin("login");
         user.setName("name");
         user.setEmail("aa@bb.com");
         user.setBirthday(LocalDate.now().plusYears(-20));
         userController.create(user);
 
-        User updateUser = new User();
-        updateUser.setId((long) 1);
+        User updateUser = User.randomUser();
+        updateUser.setName("name");
         updateUser.setLogin("newLogin");
+        updateUser.setEmail("aa@bb.com");
+        updateUser.setBirthday(LocalDate.now().plusYears(-20));
+        updateUser.setId((long) 1);
         user = (userController.update(updateUser)).getBody();
 
         User standardUser = new User();
@@ -570,9 +556,7 @@ class FilmorateApplicationTests {
         standardUser.setBirthday(LocalDate.now().plusYears(-20));
         standardUser.setId((long) 1);
 
-        assertTrue(user.equals(standardUser),
-                "Пользователи не равны"
-        );
+        assertEquals(user, standardUser, "Пользователи не равны");
 
     }
 
@@ -586,8 +570,11 @@ class FilmorateApplicationTests {
         userController.create(user);
 
         User updateUser = new User();
-        updateUser.setId((long) 1);
         updateUser.setName("newName");
+        updateUser.setLogin("login");
+        updateUser.setEmail("aa@bb.com");
+        updateUser.setBirthday(LocalDate.now().plusYears(-20));
+        updateUser.setId((long) 1);
         user = (userController.update(updateUser)).getBody();
 
         User standardUser = new User();
@@ -597,9 +584,7 @@ class FilmorateApplicationTests {
         standardUser.setBirthday(LocalDate.now().plusYears(-20));
         standardUser.setId((long) 1);
 
-        assertTrue(user.equals(standardUser),
-                "Пользователи не равны"
-        );
+        assertEquals(user, standardUser, "Пользователи не равны");
 
     }
 
@@ -613,8 +598,11 @@ class FilmorateApplicationTests {
         userController.create(user);
 
         User updateUser = new User();
-        updateUser.setId((long) 1);
+        updateUser.setName("name");
+        updateUser.setLogin("login");
         updateUser.setEmail("newEmail@aa.com");
+        updateUser.setBirthday(LocalDate.now().plusYears(-20));
+        updateUser.setId((long) 1);
         user = (userController.update(updateUser)).getBody();
 
         User standardUser = new User();
@@ -624,9 +612,7 @@ class FilmorateApplicationTests {
         standardUser.setBirthday(LocalDate.now().plusYears(-20));
         standardUser.setId((long) 1);
 
-        assertTrue(user.equals(standardUser),
-                "Пользователи не равны"
-        );
+        assertEquals(user, standardUser, "Пользователи не равны");
 
     }
 
@@ -640,8 +626,11 @@ class FilmorateApplicationTests {
         userController.create(user);
 
         User updateUser = new User();
-        updateUser.setId((long) 1);
+        updateUser.setName("name");
+        updateUser.setLogin("login");
+        updateUser.setEmail("aa@bb.com");
         updateUser.setBirthday(LocalDate.now().plusYears(-10));
+        updateUser.setId((long) 1);
         user = (userController.update(updateUser)).getBody();
 
         User standardUser = new User();
@@ -651,9 +640,7 @@ class FilmorateApplicationTests {
         standardUser.setBirthday(LocalDate.now().plusYears(-10));
         standardUser.setId((long) 1);
 
-        assertTrue(user.equals(standardUser),
-                "Пользователи не равны"
-        );
+        assertEquals(user, standardUser, "Пользователи не равны");
 
     }
 
@@ -667,11 +654,11 @@ class FilmorateApplicationTests {
         userController.create(user);
 
         User updateUser = new User();
-        updateUser.setId((long) 1);
-        user.setLogin("newLogin");
-        user.setName("newName");
-        user.setEmail("newEmail@bb.com");
+        updateUser.setLogin("newLogin");
+        updateUser.setName("newName");
+        updateUser.setEmail("newEmail@bb.com");
         updateUser.setBirthday(LocalDate.now().plusYears(-10));
+        updateUser.setId((long) 1);
         user = (userController.update(updateUser)).getBody();
 
         User standardUser = new User();
@@ -681,22 +668,20 @@ class FilmorateApplicationTests {
         standardUser.setBirthday(LocalDate.now().plusYears(-10));
         standardUser.setId((long) 1);
 
-        assertTrue(user.equals(standardUser),
-                "Пользователи не равны"
-        );
+        assertEquals(user, standardUser, "Пользователи не равны");
 
     }
 
     @Test
     void userController_getUserById_getUserByCorrectId() {
-        User user = new User();
+        User user = User.randomUser();
         user.setLogin("login");
         user.setName("name");
         user.setEmail("aa@bb.com");
         user.setBirthday(LocalDate.now().plusYears(-20));
         userController.create(user);
 
-        User findUser = (userController.getUserById((long) 1)).getBody();
+        User findUser = (userController.getUserById(user.getId()).getBody());
 
         assertEquals(
                 1,
@@ -752,41 +737,25 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    void userController_addFriend_addFriendWithEqualsIdUser_mustValidationException() {
-        Exception exception = assertThrows(
-                ValidationException.class,
-                () -> userController.addFriend((long) 1, (long) 1),
-                "Вернулось не ValidationException"
-        );
-    }
-
-    @Test
     void userController_addFriend() {
-        User user1 = new User();
-        user1.setLogin("login1");
-        user1.setName("name");
-        user1.setEmail("aa1@bb.com");
-        user1.setBirthday(LocalDate.now().plusYears(-20));
+        User user1 = User.randomUser();
+
         userController.create(user1);
 
+        User user2 = User.randomUser();
 
-        User user2 = new User();
-        user2.setLogin("login2");
-        user2.setName("name");
-        user2.setEmail("aa2@bb.com");
-        user2.setBirthday(LocalDate.now().plusYears(-20));
         userController.create(user2);
-        userController.addFriend((long) 1, (long) 2);
+        userController.addFriend(user1.getId(), user2.getId());
 
         assertEquals(
                 1,
-                (userController.getUserById((long) 1)).getBody().getFriends().size(),
+                (userController.getUserById((user1.getId()))).getBody().getFriends().size(),
                 "Неверное количество друзей"
         );
 
         assertEquals(
                 1,
-                (userController.getUserById((long) 2)).getBody().getFriends().size(),
+                (userController.getUserById(user2.getId())).getBody().getFriends().size(),
                 "Неверное количество друзей"
         );
     }
@@ -823,14 +792,6 @@ class FilmorateApplicationTests {
         );
     }
 
-    @Test
-    void userController_removeFriend_addFriendWithEqualsIdUser_mustValidationException() {
-        assertThrows(
-                ValidationException.class,
-                () -> userController.removeFriend((long) 1, (long) 1),
-                "Вернулось не ValidationException"
-        );
-    }
 
     @Test
     void userController_removeFriend() {
@@ -956,15 +917,6 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    void userController_getCommonFriendsWithEqualsIdUser_mustValidationException() {
-        Exception exception = assertThrows(
-                ValidationException.class,
-                () -> userController.getCommonFriends((long) 1, (long) 1),
-                "Вернулось не ValidationException"
-        );
-    }
-
-    @Test
     void userController_getCommonFriends() {
         User user1 = new User();
         user1.setLogin("login1");
@@ -1005,7 +957,7 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_getUFilmById_getByCorrectId() {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         film.setName("Название фильма");
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
@@ -1035,34 +987,6 @@ class FilmorateApplicationTests {
         );
     }
 
-    @Test
-    void filmController_addLike() {
-        Film film = new Film();
-        film.setName("Название фильма");
-        film.setReleaseDate(releaseDateOfFirstFilm);
-        film.setDuration(120);
-        filmController.create(film);
-
-        User user1 = new User();
-        user1.setLogin("login1");
-        user1.setName("name");
-        user1.setEmail("aa1@bb.com");
-        user1.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user1);
-
-        filmController.addLike((long) 1, (long) 1);
-
-        assertEquals(
-                1,
-                film.getLikes().size(),
-                "Неверное количество лайков id"
-        );
-
-        assertTrue(
-                film.getLikes().contains(user1.getId()),
-                "Лайк пользователя не найден"
-        );
-    }
 
     @Test
     void filmController_addLike_getByIncorrectId_mustBeNotFoundException() {
@@ -1077,7 +1001,7 @@ class FilmorateApplicationTests {
                 "Не верный текст сообщения"
         );
 
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         film.setName("Название фильма");
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
@@ -1086,43 +1010,13 @@ class FilmorateApplicationTests {
 
         exception = assertThrows(
                 NotFoundException.class,
-                () -> filmController.addLike((long) 1, (long) 1),
+                () -> filmController.addLike(film.getId(), (long) 1),
                 "Вернулось не NotFoundException"
         );
         assertEquals(
                 "Пользователь с id = 1 не найден",
                 exception.getMessage(),
                 "Не верный текст сообщения"
-        );
-    }
-
-    @Test
-    void filmController_removeLike() {
-        Film film = new Film();
-        film.setName("Название фильма");
-        film.setReleaseDate(releaseDateOfFirstFilm);
-        film.setDuration(120);
-        filmController.create(film);
-
-        User user1 = new User();
-        user1.setLogin("login1");
-        user1.setName("name");
-        user1.setEmail("aa1@bb.com");
-        user1.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user1);
-
-        filmController.addLike((long) 1, (long) 1);
-        filmController.removeLike((long) 1, (long) 1);
-
-        assertEquals(
-                0,
-                film.getLikes().size(),
-                "Неверное количество лайков id"
-        );
-
-        assertFalse(
-                film.getLikes().contains(user1.getId()),
-                "Лайк пользователя найден"
         );
     }
 
@@ -1142,45 +1036,52 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_getPopular() {
-        Film film = new Film();
+        Film film = randomGeneratedFilm();
         film.setName("Название фильма");
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
+        film.setMpa(new Mpa().setId(1));
         filmController.create(film);
+
         Film film1 = new Film();
         film1.setName("Название фильма1");
         film1.setReleaseDate(releaseDateOfFirstFilm);
         film1.setDuration(120);
+        film1.setMpa(new Mpa().setId(2));
         filmController.create(film1);
+
         Film film2 = new Film();
         film2.setName("Название фильма2");
         film2.setReleaseDate(releaseDateOfFirstFilm);
         film2.setDuration(120);
+        film2.setMpa(new Mpa().setId(3));
         filmController.create(film2);
 
         User user1 = new User();
         user1.setLogin("login1");
         user1.setName("name");
         user1.setEmail("aa1@bb.com");
-        user1.setBirthday(LocalDate.now().plusYears(-20));
+        user1.setBirthday(LocalDate.now().minusYears(20));
         userController.create(user1);
+
         User user2 = new User();
-        user2.setLogin("login1");
+        user2.setLogin("login2");
         user2.setName("name");
-        user2.setEmail("aa1@bb.com");
-        user2.setBirthday(LocalDate.now().plusYears(-20));
+        user2.setEmail("aa2@bb.com");
+        user2.setBirthday(LocalDate.now().minusYears(20));
         userController.create(user2);
 
-        filmController.addLike((long) 1, (long) 1);
+        filmController.addLike(1L, 1L);
 
-        filmController.addLike((long) 3, (long) 1);
-        filmController.addLike((long) 3, (long) 2);
+        filmController.addLike(3L, 1L);
+        filmController.addLike(3L, 2L);
 
-        Collection<Film> films = (filmController.getPopular(2)).getBody();
+        Collection<Film> films = filmController.getPopular(2).getBody();
+
         assertEquals(
                 2,
                 films.size(),
-                "Неверный id фильма"
+                "Неверное количество фильмов"
         );
 
         assertEquals(

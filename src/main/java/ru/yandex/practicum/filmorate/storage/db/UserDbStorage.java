@@ -72,12 +72,15 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     public void addFriend(Long id, Long friendId) {
         User user1 = findUserById(id);
         User user2 = findUserById(friendId);
+
         int typeFriendshipId = 2;
+
         Collection<User> user2Friends = getUserFriends(friendId);
         if (user2Friends.contains(user1)) {
             typeFriendshipId = 1;
             update(UPDATE_TYPE_FRIENDSHIP_QUERY, typeFriendshipId, friendId, id);
         }
+
         insert(INSERT_FRIENDS_QUERY, id, friendId, typeFriendshipId);
     }
 
@@ -90,12 +93,15 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
             log.error("Creating user: Validation exception: {}", exception.getMessage());
             throw exception;
         }
+
         long id = insert(
                 INSERT_QUERY,
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),
-                user.getBirthday());
+                user.getBirthday()
+        );
+
         user.setId(id);
         log.info("User created: {}", user);
         return user;
@@ -104,19 +110,22 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     @Override
     public User findUserById(Long id) {
         log.info("Finding user by id {}", id);
-        User user = findOne(FIND_BY_ID_QUERY, id).orElseThrow(
-                () -> {
-                    String message = "Пользователь с id = " + id + " не найден";
-                    log.warn("findUserById: NotFoundException: {}", message);
-                    return new NotFoundException(message);
-                });
+
+        User user = findOne(FIND_BY_ID_QUERY, id).orElseThrow(() -> {
+            String message = "Пользователь с id = " + id + " не найден";
+            log.warn("findUserById: NotFoundException: {}", message);
+            return new NotFoundException(message);
+        });
+
         setFriendsToUser(user);
+
         log.info("User found: {}", user);
         return user;
     }
 
     private void setFriendsToUser(User user) {
         log.info("Set friends to user: {}", user);
+
         List<FriendDto> friendsDto = jdbc.query(
                 FIND_FRIENDS_TYPE_QUERY,
                 (rs, rowNum) -> new FriendDto(
@@ -125,41 +134,42 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
                 ),
                 user.getId()
         );
+
         Map<Long, TypeFriendship> friendsMap = friendsDto.stream()
                 .collect(Collectors.toMap(
                         FriendDto::getUserId,
                         FriendDto::getType
                 ));
+
         user.setFriends(friendsMap);
+
         log.info("User friends set: {}", friendsMap);
     }
 
     @Override
     public Collection<User> getAllUsers() {
         log.info("Get all users");
-        List<User> users = findMany(FIND_ALL_QUERY);
-        return users;
+        return findMany(FIND_ALL_QUERY);
     }
 
     @Override
     public Collection<User> getCommonFriends(Long userId, Long otherId) {
         log.info("Get common friends for user {} and other {}", userId, otherId);
+
         findUserById(userId);
         findUserById(otherId);
-        return findMany(FIND_COMMON_FRIENDS_QUERY, userId, otherId).stream()
-                .map(user -> {
-                    setFriendsToUser(user);
-                    return user;
-                })
-                .toList();
+
+        return findMany(FIND_COMMON_FRIENDS_QUERY, userId, otherId);
     }
 
     @Override
     public void removeFriend(Long id, Long friendId) {
         log.info("Remove user {} from friends {}", id, friendId);
+
         User user1 = findUserById(id);
-        User user2 = findUserById(friendId);
+
         delete(DELETE_FRIENDS_QUERY, id, friendId);
+
         Collection<User> user2Friends = getUserFriends(friendId);
         if (user2Friends.contains(user1)) {
             update(UPDATE_TYPE_FRIENDSHIP_QUERY, 2, friendId, id);
@@ -169,28 +179,29 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     @Override
     public Collection<User> getUserFriends(Long userId) {
         log.info("Get user friends for user {}", userId);
+
         findUserById(userId);
-        return findMany(FIND_FRIENDS_QUERY, userId).stream()
-                .map(user -> {
-                    setFriendsToUser(user);
-                    return user;
-                })
-                .toList();
+
+        return findMany(FIND_FRIENDS_QUERY, userId);
     }
 
     @Override
     public User updateUser(User user) {
         log.info("Updating user: {}", user);
+
         User updatedUser = findUserById(user.getId());
         log.info("User before update: {}", updatedUser);
+
         UpdateUserRequest updateUserRequest = UserMapper.mapToUpdateUserRequest(user);
         UserMapper.updateUserFields(updatedUser, updateUserRequest);
+
         try {
             validateUser.validate(updatedUser);
         } catch (ValidationException exception) {
             log.error("Updating user: Validation exception: {}", exception.getMessage());
             throw exception;
         }
+
         update(
                 UPDATE_QUERY,
                 updatedUser.getEmail(),
@@ -199,6 +210,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
                 updatedUser.getBirthday(),
                 updatedUser.getId()
         );
+
         log.info("User updated: {}", updatedUser);
         return updatedUser;
     }
