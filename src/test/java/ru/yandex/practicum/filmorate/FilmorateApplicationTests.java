@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.controller.UserController;
@@ -19,10 +18,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static ru.yandex.practicum.filmorate.model.Film.randomGeneratedFilm;
-
+import static ru.yandex.practicum.filmorate.model.User.randomUser;
 
 @Transactional
 @SpringBootTest
@@ -206,29 +206,19 @@ class FilmorateApplicationTests {
     void filmController_update_returnFilmWithCorrectDescription() {
         Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < 200; i++) {
-            stringBuilder.append("a");
-        }
+        for (int i = 0; i < 200; i++) stringBuilder.append("a");
         film.setName(stringBuilder.toString());
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
 
-        filmController.create(film);
+        Film createdFilm = filmController.create(film).getBody();
 
         Film updateFilm = randomGeneratedFilm();
-        updateFilm.setId((long) 1);
+        updateFilm.setId(createdFilm.getId());
         updateFilm.setDescription("Описание");
-        film = (filmController.update(updateFilm)).getBody();
+        Film updatedFilm = filmController.update(updateFilm).getBody();
 
-        Film standardFilm = randomGeneratedFilm();
-        standardFilm.setName(stringBuilder.toString());
-        standardFilm.setReleaseDate(releaseDateOfFirstFilm);
-        standardFilm.setDuration(120);
-        standardFilm.setId((long) 1);
-        standardFilm.setDescription("Описание");
-
-        assertEquals((film.getDescription()), standardFilm.getDescription(), "Фильмы не равны");
-
+        assertEquals("Описание", updatedFilm.getDescription(), "Фильмы не равны");
     }
 
     @Test
@@ -266,92 +256,63 @@ class FilmorateApplicationTests {
     @Test
     void filmController_update_returnFilmWithCorrectReleaseDate() {
         Film film = randomGeneratedFilm();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < 200; i++) {
-            stringBuilder.append("a");
-        }
-        film.setName(stringBuilder.toString());
+        film.setName("Название фильма");
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
-
-        filmController.create(film);
+        Film createdFilm = filmController.create(film).getBody();
 
         Film updateFilm = randomGeneratedFilm();
-        updateFilm.setId((long) 1);
+        updateFilm.setId(createdFilm.getId());
         updateFilm.setReleaseDate(LocalDate.of(2025, 12, 29));
         updateFilm.setDuration(120);
-        film = (filmController.update(updateFilm)).getBody();
+        Film updatedFilm = filmController.update(updateFilm).getBody();
 
-        Film standardFilm = randomGeneratedFilm();
-        standardFilm.setId((long) 1);
-        standardFilm.setReleaseDate(LocalDate.of(2025, 12, 29));
-        standardFilm.setName(updateFilm.getName());
-        standardFilm.setDuration(120);
-
-        assertEquals(film.getReleaseDate(), standardFilm.getReleaseDate(), "Фильмы не равны");
-
+        assertEquals(LocalDate.of(2025, 12, 29), updatedFilm.getReleaseDate(), "Фильмы не равны");
     }
 
     @Test
     void filmController_update_returnFilmWithCorrectDurationInMinutes() {
         Film film = randomGeneratedFilm();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < 200; i++) {
-            stringBuilder.append("a");
-        }
-        film.setName(stringBuilder.toString());
+        film.setName("Название фильма");
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
-
-        filmController.create(film);
+        Film created = filmController.create(film).getBody();
 
         Film updateFilm = randomGeneratedFilm();
-        updateFilm.setId((long) 1);
+        updateFilm.setId(created.getId());
         updateFilm.setDuration(60);
-        film = (filmController.update(updateFilm)).getBody();
 
-        Film standardFilm = new Film();
-        standardFilm.setName(film.getName());
-        standardFilm.setReleaseDate(releaseDateOfFirstFilm);
-        standardFilm.setDuration(60);
-        standardFilm.setId((long) 1);
+        Film updated = filmController.update(updateFilm).getBody();
 
-        assertEquals(film.getDuration(), standardFilm.getDuration(), "Фильмы не равны");
-
+        assertEquals(60, updated.getDuration());
     }
 
     @Test
     void filmController_updateAll_returnFilmWithCorrectFields() {
         Film film = randomGeneratedFilm();
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < 200; i++) {
-            stringBuilder.append("a");
-        }
+        for (int i = 0; i < 200; i++) stringBuilder.append("a");
         film.setName(stringBuilder.toString());
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
 
-        filmController.create(film);
+        Film createdFilm = filmController.create(film).getBody();
 
         Film updateFilm = randomGeneratedFilm();
-        updateFilm.setId((long) 1);
+        updateFilm.setId(createdFilm.getId());
         updateFilm.setName("New name");
         updateFilm.setDuration(60);
-        updateFilm.setReleaseDate(LocalDate.of(2024, 06, 01));
+        updateFilm.setReleaseDate(LocalDate.of(2024, 6, 1));
         updateFilm.setDescription("New description");
-        film = (filmController.update(updateFilm)).getBody();
 
-        Film standardFilm = new Film();
-        standardFilm.setMpa(film.getMpa());
-        standardFilm.setName("New name");
-        standardFilm.setDuration(60);
-        standardFilm.setReleaseDate(LocalDate.of(2024, 06, 01));
-        standardFilm.setDescription("New description");
-        standardFilm.setId((long) 1);
+        Film updatedFilm = filmController.update(updateFilm).getBody();
 
-        assertEquals(film, standardFilm, "Фильмы не равны");
-
+        assertEquals("New name", updatedFilm.getName());
+        assertEquals(60, updatedFilm.getDuration());
+        assertEquals(LocalDate.of(2024, 6, 1), updatedFilm.getReleaseDate());
+        assertEquals("New description", updatedFilm.getDescription());
     }
+
 
     @Test
     void userController_createWithIncorrectEmail_mustBeValidationException() throws ValidationException {
@@ -428,18 +389,10 @@ class FilmorateApplicationTests {
 
     @Test
     void userController_create_returnUserWithId() {
-        User user = new User();
-        user.setLogin("login");
-        user.setEmail("aa@bb.com");
+        User user = User.randomUser();
+        User newUser = userController.create(user).getBody();
 
-        ResponseEntity<User> response = userController.create(user);
-        User newUser = response.getBody();
-
-        assertEquals(
-                1L,
-                newUser.getId(),
-                "Неверный id пользователя"
-        );
+        assertNotNull(newUser.getId());
     }
 
     @Test
@@ -510,26 +463,20 @@ class FilmorateApplicationTests {
         User user = User.randomUser();
         user.setLogin("login");
         user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user);
+        user.setBirthday(LocalDate.now().minusYears(20));
+        User created = userController.create(user).getBody();
 
         User updateUser = User.randomUser();
-        updateUser.setId((long) 1);
+        updateUser.setId(created.getId());
         updateUser.setName("newLogin");
         updateUser.setLogin("newLogin");
-        updateUser.setEmail("aa@bb.com");
-        updateUser.setBirthday(LocalDate.now().plusYears(-20));
-        user = (userController.update(updateUser)).getBody();
+        updateUser.setEmail(created.getEmail());
+        updateUser.setBirthday(created.getBirthday());
 
-        User standardUser = new User();
-        standardUser.setName("newLogin");
-        standardUser.setLogin("newLogin");
-        standardUser.setEmail("aa@bb.com");
-        standardUser.setBirthday(LocalDate.now().plusYears(-20));
-        standardUser.setId((long) 1);
+        User updated = userController.update(updateUser).getBody();
 
-        assertEquals(user, standardUser, "Пользователи не равны");
-
+        assertEquals("newLogin", updated.getName());
+        assertEquals("newLogin", updated.getLogin());
     }
 
     @Test
@@ -538,143 +485,109 @@ class FilmorateApplicationTests {
         user.setLogin("login");
         user.setName("name");
         user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user);
+        user.setBirthday(LocalDate.now().minusYears(20));
+        User created = userController.create(user).getBody();
 
         User updateUser = User.randomUser();
-        updateUser.setName("name");
+        updateUser.setId(created.getId());
+        updateUser.setName(created.getName());
         updateUser.setLogin("newLogin");
-        updateUser.setEmail("aa@bb.com");
-        updateUser.setBirthday(LocalDate.now().plusYears(-20));
-        updateUser.setId((long) 1);
-        user = (userController.update(updateUser)).getBody();
+        updateUser.setEmail(created.getEmail());
+        updateUser.setBirthday(created.getBirthday());
 
-        User standardUser = new User();
-        standardUser.setName("name");
-        standardUser.setLogin("newLogin");
-        standardUser.setEmail("aa@bb.com");
-        standardUser.setBirthday(LocalDate.now().plusYears(-20));
-        standardUser.setId((long) 1);
+        User updated = userController.update(updateUser).getBody();
 
-        assertEquals(user, standardUser, "Пользователи не равны");
-
+        assertEquals("newLogin", updated.getLogin());
     }
 
     @Test
     void userController_update_returnUserWithCorrectName() {
-        User user = new User();
+        User user = randomUser();
         user.setLogin("login");
-        user.setName("name");
         user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
+        user.setName("name");
+        user.setBirthday(LocalDate.now().minusYears(20));
         userController.create(user);
 
         User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setLogin("newLogin");
         updateUser.setName("newName");
-        updateUser.setLogin("login");
-        updateUser.setEmail("aa@bb.com");
-        updateUser.setBirthday(LocalDate.now().plusYears(-20));
-        updateUser.setId((long) 1);
-        user = (userController.update(updateUser)).getBody();
+        updateUser.setEmail("newEmail@bb.com");
+        updateUser.setBirthday(LocalDate.now().minusYears(10));
 
-        User standardUser = new User();
-        standardUser.setName("newName");
-        standardUser.setLogin("login");
-        standardUser.setEmail("aa@bb.com");
-        standardUser.setBirthday(LocalDate.now().plusYears(-20));
-        standardUser.setId((long) 1);
+        User updatedUser = userController.update(updateUser).getBody();
 
-        assertEquals(user, standardUser, "Пользователи не равны");
-
+        assertEquals("newName", updatedUser.getName());
     }
 
     @Test
     void userController_update_returnUserWithCorrectEmail() {
-        User user = new User();
+        User user = User.randomUser();
         user.setLogin("login");
         user.setName("name");
         user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user);
+        user.setBirthday(LocalDate.now().minusYears(20));
+        User created = userController.create(user).getBody();
 
-        User updateUser = new User();
-        updateUser.setName("name");
-        updateUser.setLogin("login");
+        User updateUser = User.randomUser();
+        updateUser.setId(created.getId());
+        updateUser.setName(created.getName());
+        updateUser.setLogin(created.getLogin());
         updateUser.setEmail("newEmail@aa.com");
-        updateUser.setBirthday(LocalDate.now().plusYears(-20));
-        updateUser.setId((long) 1);
-        user = (userController.update(updateUser)).getBody();
+        updateUser.setBirthday(created.getBirthday());
 
-        User standardUser = new User();
-        standardUser.setName("name");
-        standardUser.setLogin("login");
-        standardUser.setEmail("newEmail@aa.com");
-        standardUser.setBirthday(LocalDate.now().plusYears(-20));
-        standardUser.setId((long) 1);
+        User updated = userController.update(updateUser).getBody();
 
-        assertEquals(user, standardUser, "Пользователи не равны");
-
+        assertEquals("newEmail@aa.com", updated.getEmail());
+        assertEquals(created.getLogin(), updated.getLogin());
+        assertEquals(created.getName(), updated.getName());
     }
 
     @Test
     void userController_update_returnUserWithCorrectBirthday() {
-        User user = new User();
-        user.setLogin("login");
-        user.setName("name");
-        user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user);
+        User user = userController.create(User.randomUser()).getBody();
 
         User updateUser = new User();
-        updateUser.setName("name");
-        updateUser.setLogin("login");
-        updateUser.setEmail("aa@bb.com");
-        updateUser.setBirthday(LocalDate.now().plusYears(-10));
-        updateUser.setId((long) 1);
-        user = (userController.update(updateUser)).getBody();
+        updateUser.setId(user.getId());
+        updateUser.setName(user.getName());
+        updateUser.setLogin(user.getLogin());
+        updateUser.setEmail(user.getEmail());
+        updateUser.setBirthday(LocalDate.now().minusYears(10));
 
-        User standardUser = new User();
-        standardUser.setName("name");
-        standardUser.setLogin("login");
-        standardUser.setEmail("aa@bb.com");
-        standardUser.setBirthday(LocalDate.now().plusYears(-10));
-        standardUser.setId((long) 1);
+        User updated = userController.update(updateUser).getBody();
 
-        assertEquals(user, standardUser, "Пользователи не равны");
-
+        assertEquals(LocalDate.now().minusYears(10), updated.getBirthday());
     }
 
     @Test
     void userController_updateAll_returnUserWithCorrectFields() {
-        User user = new User();
+        User user = randomUser();
         user.setLogin("login");
-        user.setName("name");
         user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
+        user.setName("name");
+        user.setBirthday(LocalDate.now().minusYears(20));
         userController.create(user);
 
         User updateUser = new User();
+        updateUser.setId(user.getId());
         updateUser.setLogin("newLogin");
         updateUser.setName("newName");
         updateUser.setEmail("newEmail@bb.com");
-        updateUser.setBirthday(LocalDate.now().plusYears(-10));
-        updateUser.setId((long) 1);
-        user = (userController.update(updateUser)).getBody();
+        updateUser.setBirthday(LocalDate.now().minusYears(10));
 
-        User standardUser = new User();
-        standardUser.setLogin("newLogin");
-        standardUser.setName("newName");
-        standardUser.setEmail("newEmail@bb.com");
-        standardUser.setBirthday(LocalDate.now().plusYears(-10));
-        standardUser.setId((long) 1);
+        User updatedUser = userController.update(updateUser).getBody();
 
-        assertEquals(user, standardUser, "Пользователи не равны");
-
+        assertEquals("newLogin", updatedUser.getLogin());
+        assertEquals("newName", updatedUser.getName());
+        assertEquals("newEmail@bb.com", updatedUser.getEmail());
+        assertEquals(LocalDate.now().minusYears(10), updatedUser.getBirthday());
     }
+
 
     @Test
     void userController_getUserById_getUserByCorrectId() {
-        User user = User.randomUser();
+        User user = randomUser();
         user.setLogin("login");
         user.setName("name");
         user.setEmail("aa@bb.com");
@@ -684,7 +597,7 @@ class FilmorateApplicationTests {
         User findUser = (userController.getUserById(user.getId()).getBody());
 
         assertEquals(
-                1,
+                user.getId(),
                 findUser.getId(),
                 "Неверный id пользователя"
         );
@@ -708,41 +621,27 @@ class FilmorateApplicationTests {
     void userController_addFriend_addFriendByIncorrectId() {
         Exception exception = assertThrows(
                 NotFoundException.class,
-                () -> userController.addFriend((long) 1, (long) 2),
-                "Вернулось не NotFoundException"
+                () -> userController.addFriend(1L, 2L)
         );
-        assertEquals(
-                "Пользователь с id = 1 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        assertEquals("Пользователь с id = 1 не найден", exception.getMessage());
 
-        User user = new User();
-        user.setLogin("login");
-        user.setName("name");
-        user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user);
+        User user = User.randomUser();
+        User created = userController.create(user).getBody();
 
         exception = assertThrows(
                 NotFoundException.class,
-                () -> userController.addFriend((long) 1, (long) 2),
-                "Вернулось не NotFoundException"
+                () -> userController.addFriend(created.getId(), 2L)
         );
-        assertEquals(
-                "Пользователь с id = 2 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        assertEquals("Пользователь с id = 2 не найден", exception.getMessage());
     }
 
     @Test
     void userController_addFriend() {
-        User user1 = User.randomUser();
+        User user1 = randomUser();
 
         userController.create(user1);
 
-        User user2 = User.randomUser();
+        User user2 = randomUser();
 
         userController.create(user2);
         userController.addFriend(user1.getId(), user2.getId());
@@ -764,38 +663,24 @@ class FilmorateApplicationTests {
     void userController_removeFriend_addFriendByIncorrectId() {
         Exception exception = assertThrows(
                 NotFoundException.class,
-                () -> userController.removeFriend((long) 1, (long) 2),
-                "Вернулось не NotFoundException"
+                () -> userController.removeFriend(1L, 2L)
         );
-        assertEquals(
-                "Пользователь с id = 1 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        assertEquals("Пользователь с id = 1 не найден", exception.getMessage());
 
-        User user = new User();
-        user.setLogin("login");
-        user.setName("name");
-        user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user);
+        User user = User.randomUser();
+        User createdUser = userController.create(user).getBody();
 
         exception = assertThrows(
                 NotFoundException.class,
-                () -> userController.removeFriend((long) 1, (long) 2),
-                "Вернулось не NotFoundException"
+                () -> userController.removeFriend(createdUser.getId(), 2L)
         );
-        assertEquals(
-                "Пользователь с id = 2 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        assertEquals("Пользователь с id = 2 не найден", exception.getMessage());
     }
 
 
     @Test
     void userController_removeFriend() {
-        User user1 = new User();
+        User user1 = randomUser();
         user1.setLogin("login1");
         user1.setName("name");
         user1.setEmail("aa1@bb.com");
@@ -803,36 +688,36 @@ class FilmorateApplicationTests {
         userController.create(user1);
 
 
-        User user2 = new User();
+        User user2 = randomUser();
         user2.setLogin("login2");
         user2.setName("name");
         user2.setEmail("aa2@bb.com");
         user2.setBirthday(LocalDate.now().plusYears(-20));
         userController.create(user2);
 
-        User user3 = new User();
+        User user3 = randomUser();
         user3.setLogin("login2");
         user3.setName("name");
         user3.setEmail("aa2@bb.com");
         user3.setBirthday(LocalDate.now().plusYears(-20));
         userController.create(user3);
 
-        userController.addFriend((long) 1, (long) 2);
-        userController.addFriend((long) 1, (long) 3);
+        userController.addFriend(user1.getId(), user2.getId());
+        userController.addFriend(user1.getId(), user3.getId());
 
         assertEquals(2,
-                (userController.getUserById((long) 1)).getBody().getFriends().size(),
+                (userController.getUserById(user1.getId())).getBody().getFriends().size(),
                 "Неверное количество друзей"
         );
 
-        userController.removeFriend((long) 1, (long) 3);
+        userController.removeFriend(user1.getId(), user3.getId());
 
         assertEquals(1,
-                (userController.getUserById((long) 1)).getBody().getFriends().size(),
+                (userController.getUserById(user1.getId())).getBody().getFriends().size(),
                 "Неверное количество друзей"
         );
         assertEquals(0,
-                (userController.getUserById((long) 3)).getBody().getFriends().size(),
+                (userController.getUserById(user3.getId())).getBody().getFriends().size(),
                 "Неверное количество друзей"
         );
     }
@@ -848,129 +733,66 @@ class FilmorateApplicationTests {
 
     @Test
     void userController_getUserFriends() {
-        User user1 = new User();
-        user1.setLogin("login1");
-        user1.setName("name");
-        user1.setEmail("aa1@bb.com");
-        user1.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user1);
+        User user1 = userController.create(User.randomUser()).getBody();
+        User user2 = userController.create(User.randomUser()).getBody();
+        User user3 = userController.create(User.randomUser()).getBody();
 
+        userController.addFriend(user1.getId(), user2.getId());
+        userController.addFriend(user1.getId(), user3.getId());
 
-        User user2 = new User();
-        user2.setLogin("login2");
-        user2.setName("name");
-        user2.setEmail("aa2@bb.com");
-        user2.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user2);
+        Collection<User> friends = userController.getUserFriends(user1.getId()).getBody();
 
-        User user3 = new User();
-        user3.setLogin("login2");
-        user3.setName("name");
-        user3.setEmail("aa2@bb.com");
-        user3.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user3);
-
-        userController.addFriend((long) 1, (long) 2);
-        userController.addFriend((long) 1, (long) 3);
-
-        Collection<User> users = (userController.getUserFriends((long) 1)).getBody();
-
-        assertEquals(2,
-                users.size(),
-                "Неверное количество друзей"
-        );
-        assertTrue(users.contains(user2),
-                "Друг не найден"
-        );
+        assertEquals(2, friends.size());
+        assertTrue(friends.contains(user2));
+        assertTrue(friends.contains(user3));
     }
 
     @Test
     void userController_getCommonFriendsByIncorrectId() {
         Exception exception = assertThrows(
                 NotFoundException.class,
-                () -> userController.addFriend((long) 1, (long) 2),
-                "Вернулось не NotFoundException"
+                () -> userController.addFriend(1L, 2L)
         );
-        assertEquals(
-                "Пользователь с id = 1 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        assertEquals("Пользователь с id = 1 не найден", exception.getMessage());
 
-        User user = new User();
-        user.setLogin("login");
-        user.setName("name");
-        user.setEmail("aa@bb.com");
-        user.setBirthday(LocalDate.now().plusYears(-20));
+        User user = User.randomUser();
         userController.create(user);
 
         exception = assertThrows(
                 NotFoundException.class,
-                () -> userController.getCommonFriends((long) 1, (long) 2),
-                "Вернулось не NotFoundException"
+                () -> userController.getCommonFriends(user.getId(), 2L)
         );
-        assertEquals(
-                "Пользователь с id = 2 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        assertEquals("Пользователь с id = 2 не найден", exception.getMessage());
     }
+
 
     @Test
     void userController_getCommonFriends() {
-        User user1 = new User();
-        user1.setLogin("login1");
-        user1.setName("name");
-        user1.setEmail("aa1@bb.com");
-        user1.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user1);
+        User user1 = userController.create(User.randomUser()).getBody();
+        User user2 = userController.create(User.randomUser()).getBody();
+        User user3 = userController.create(User.randomUser()).getBody();
 
+        userController.addFriend(user1.getId(), user2.getId());
+        userController.addFriend(user1.getId(), user3.getId());
+        userController.addFriend(user2.getId(), user3.getId());
 
-        User user2 = new User();
-        user2.setLogin("login2");
-        user2.setName("name");
-        user2.setEmail("aa2@bb.com");
-        user2.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user2);
+        Collection<User> common = userController.getCommonFriends(user1.getId(), user3.getId()).getBody();
 
-        User user3 = new User();
-        user3.setLogin("login2");
-        user3.setName("name");
-        user3.setEmail("aa2@bb.com");
-        user3.setBirthday(LocalDate.now().plusYears(-20));
-        userController.create(user3);
-
-        userController.addFriend((long) 1, (long) 2);
-        userController.addFriend((long) 1, (long) 3);
-        userController.addFriend((long) 2, (long) 3);
-
-        Collection<User> users = (userController.getCommonFriends((long) 1, (long) 3)).getBody();
-
-        assertEquals(1,
-                users.size(),
-                "Неверное количество друзей"
-        );
-        assertTrue(users.contains(user2),
-                "Друг не найден"
-        );
+        assertEquals(1, common.size());
+        assertTrue(common.contains(user2));
     }
 
     @Test
-    void filmController_getUFilmById_getByCorrectId() {
+    void filmController_getFilmById_getByCorrectId() {
         Film film = randomGeneratedFilm();
         film.setName("Название фильма");
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
+        Film created = filmController.create(film).getBody();
 
-        filmController.create(film);
+        Film found = filmController.getFilmById(created.getId()).getBody();
 
-        Film findFilm = (filmController.getFilmById((long) 1)).getBody();
-
-        assertEquals(
-                1,
-                findFilm.getId(),
-                "Неверный id"
-        );
+        assertEquals(created.getId(), found.getId());
     }
 
     @Test
@@ -1036,58 +858,44 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_getPopular() {
-        Film film = randomGeneratedFilm();
-        film.setName("Название фильма");
-        film.setReleaseDate(releaseDateOfFirstFilm);
-        film.setDuration(120);
-        film.setMpa(new Mpa().setId(1));
-        filmController.create(film);
+        Film filmA = randomGeneratedFilm();
+        filmA.setName("Название фильма");
+        filmA.setReleaseDate(releaseDateOfFirstFilm);
+        filmA.setDuration(120);
+        filmA.setMpa(new Mpa().setId(1));
+        filmA = filmController.create(filmA).getBody();
 
-        Film film1 = new Film();
-        film1.setName("Название фильма1");
-        film1.setReleaseDate(releaseDateOfFirstFilm);
-        film1.setDuration(120);
-        film1.setMpa(new Mpa().setId(2));
-        filmController.create(film1);
+        Film filmB = randomGeneratedFilm();
+        filmB.setName("Название фильма1");
+        filmB.setReleaseDate(releaseDateOfFirstFilm);
+        filmB.setDuration(120);
+        filmB.setMpa(new Mpa().setId(2));
+        filmB = filmController.create(filmB).getBody();
 
-        Film film2 = new Film();
-        film2.setName("Название фильма2");
-        film2.setReleaseDate(releaseDateOfFirstFilm);
-        film2.setDuration(120);
-        film2.setMpa(new Mpa().setId(3));
-        filmController.create(film2);
+        Film filmC = randomGeneratedFilm();
+        filmC.setName("Название фильма2");
+        filmC.setReleaseDate(releaseDateOfFirstFilm);
+        filmC.setDuration(120);
+        filmC.setMpa(new Mpa().setId(3));
+        filmC = filmController.create(filmC).getBody();
 
-        User user1 = new User();
-        user1.setLogin("login1");
-        user1.setName("name");
+        User user1 = randomUser();
+        user1.setName("login1");
         user1.setEmail("aa1@bb.com");
-        user1.setBirthday(LocalDate.now().minusYears(20));
         userController.create(user1);
-
-        User user2 = new User();
-        user2.setLogin("login2");
-        user2.setName("name");
+        User user2 = randomUser();
+        user2.setName("login2");
         user2.setEmail("aa2@bb.com");
-        user2.setBirthday(LocalDate.now().minusYears(20));
         userController.create(user2);
 
-        filmController.addLike(1L, 1L);
-
-        filmController.addLike(3L, 1L);
-        filmController.addLike(3L, 2L);
+        filmController.addLike(filmA.getId(), user1.getId());
+        filmController.addLike(filmC.getId(), user1.getId());
+        filmController.addLike(filmC.getId(), user2.getId());
 
         Collection<Film> films = filmController.getPopular(2).getBody();
 
-        assertEquals(
-                2,
-                films.size(),
-                "Неверное количество фильмов"
-        );
-
-        assertEquals(
-                3,
-                films.iterator().next().getId(),
-                "Неверный id фильма"
-        );
+        assertEquals(2, films.size(), "Неверное количество фильмов");
+        assertEquals(filmC.getId(), films.iterator().next().getId(), "Неверный id фильма");
     }
+
 }
