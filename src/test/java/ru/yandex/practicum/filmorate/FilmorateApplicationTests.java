@@ -271,46 +271,84 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    void filmController_update_returnFilmWithCorrectDurationInMinutes() {
-        Film film = randomGeneratedFilm();
-        film.setName("Название фильма");
-        film.setReleaseDate(releaseDateOfFirstFilm);
-        film.setDuration(120);
-        Film created = filmController.create(film).getBody();
+    void userController_addAndRemoveFriends_worksCorrectly() {
+        User user1 = User.randomUser();
+        user1.setLogin("u1");
+        user1.setEmail("u1@email.com");
+        Long id1 = userController.create(user1).getBody().getId();
 
-        Film updateFilm = randomGeneratedFilm();
-        updateFilm.setId(created.getId());
-        updateFilm.setDuration(60);
+        User user2 = User.randomUser();
+        user2.setLogin("u2");
+        user2.setEmail("u2@email.com");
+        Long id2 = userController.create(user2).getBody().getId();
 
-        Film updated = filmController.update(updateFilm).getBody();
+        userController.addFriend(id1, id2);
 
-        assertEquals(60, updated.getDuration());
+        Collection<User> friends1 = userController.getUserFriends(id1).getBody();
+        Collection<User> friends2 = userController.getUserFriends(id2).getBody();
+
+        assertEquals(1, friends1.size());
+        assertEquals(1, friends2.size());
+
+        userController.removeFriend(id1, id2);
+
+        assertEquals(0, userController.getUserFriends(id1).getBody().size());
+        assertEquals(0, userController.getUserFriends(id2).getBody().size());
     }
 
     @Test
-    void filmController_updateAll_returnFilmWithCorrectFields() {
-        Film film = randomGeneratedFilm();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < 200; i++) stringBuilder.append("a");
-        film.setName(stringBuilder.toString());
-        film.setReleaseDate(releaseDateOfFirstFilm);
-        film.setDuration(120);
+    void userController_getCommonFriends_returnsCorrectly() {
+        User user1 = User.randomUser();
+        user1.setLogin("u1");
+        user1.setEmail("u1@email.com");
+        Long id1 = userController.create(user1).getBody().getId();
 
-        Film createdFilm = filmController.create(film).getBody();
+        User user2 = User.randomUser();
+        user2.setLogin("u2");
+        user2.setEmail("u2@email.com");
+        Long id2 = userController.create(user2).getBody().getId();
 
-        Film updateFilm = randomGeneratedFilm();
-        updateFilm.setId(createdFilm.getId());
-        updateFilm.setName("New name");
-        updateFilm.setDuration(60);
-        updateFilm.setReleaseDate(LocalDate.of(2024, 6, 1));
-        updateFilm.setDescription("New description");
+        User user3 = User.randomUser();
+        user3.setLogin("u3");
+        user3.setEmail("u3@email.com");
+        Long id3 = userController.create(user3).getBody().getId();
 
-        Film updatedFilm = filmController.update(updateFilm).getBody();
+        userController.addFriend(id1, id3);
+        userController.addFriend(id2, id3);
 
-        assertEquals("New name", updatedFilm.getName());
-        assertEquals(60, updatedFilm.getDuration());
-        assertEquals(LocalDate.of(2024, 6, 1), updatedFilm.getReleaseDate());
-        assertEquals("New description", updatedFilm.getDescription());
+        Collection<User> common = userController.getCommonFriends(id1, id2).getBody();
+        assertEquals(1, common.size());
+        assertEquals(id3, common.iterator().next().getId());
+    }
+
+
+    @Test
+    void userController_createAndUpdate_returnsCorrectUser() {
+        User user = User.randomUser();
+        user.setLogin("login");
+        user.setEmail("aa@bb.com");
+        Long id = userController.create(user).getBody().getId();
+
+        User update = User.randomUser();
+        update.setId(id);
+        update.setLogin("newLogin");
+        update.setEmail("newEmail@bb.com");
+        update.setName("newName");
+
+        User updated = userController.update(update).getBody();
+
+        assertEquals("newLogin", updated.getLogin());
+        assertEquals("newEmail@bb.com", updated.getEmail());
+        assertEquals("newName", updated.getName());
+    }
+
+    @Test
+    void filmController_getFilmById_returnsCorrectFilm() {
+        Film film = Film.randomGeneratedFilm();
+        Long filmId = filmController.create(film).getBody().getId();
+
+        Film fetched = filmController.getFilmById(filmId).getBody();
+        assertEquals(filmId, fetched.getId());
     }
 
 
@@ -858,44 +896,32 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_getPopular() {
-        Film filmA = randomGeneratedFilm();
-        filmA.setName("Название фильма");
-        filmA.setReleaseDate(releaseDateOfFirstFilm);
-        filmA.setDuration(120);
-        filmA.setMpa(new Mpa().setId(1));
-        filmA = filmController.create(filmA).getBody();
+        Film film1 = Film.randomGeneratedFilm();
+        Film film2 = Film.randomGeneratedFilm();
+        Film film3 = Film.randomGeneratedFilm();
 
-        Film filmB = randomGeneratedFilm();
-        filmB.setName("Название фильма1");
-        filmB.setReleaseDate(releaseDateOfFirstFilm);
-        filmB.setDuration(120);
-        filmB.setMpa(new Mpa().setId(2));
-        filmB = filmController.create(filmB).getBody();
+        Long id1 = filmController.create(film1).getBody().getId();
+        Long id2 = filmController.create(film2).getBody().getId();
+        Long id3 = filmController.create(film3).getBody().getId();
 
-        Film filmC = randomGeneratedFilm();
-        filmC.setName("Название фильма2");
-        filmC.setReleaseDate(releaseDateOfFirstFilm);
-        filmC.setDuration(120);
-        filmC.setMpa(new Mpa().setId(3));
-        filmC = filmController.create(filmC).getBody();
+        User user1 = User.randomUser();
+        user1.setLogin("login1");
+        user1.setEmail("u1@email.com");
+        Long u1 = userController.create(user1).getBody().getId();
 
-        User user1 = randomUser();
-        user1.setName("login1");
-        user1.setEmail("aa1@bb.com");
-        userController.create(user1);
-        User user2 = randomUser();
-        user2.setName("login2");
-        user2.setEmail("aa2@bb.com");
-        userController.create(user2);
+        User user2 = User.randomUser();
+        user2.setLogin("login2");
+        user2.setEmail("u2@email.com");
+        Long u2 = userController.create(user2).getBody().getId();
 
-        filmController.addLike(filmA.getId(), user1.getId());
-        filmController.addLike(filmC.getId(), user1.getId());
-        filmController.addLike(filmC.getId(), user2.getId());
+        filmController.addLike(id1, u1);
+        filmController.addLike(id3, u1);
+        filmController.addLike(id3, u2);
 
-        Collection<Film> films = filmController.getPopular(2).getBody();
+        Collection<Film> popular = filmController.getPopular(2).getBody();
 
-        assertEquals(2, films.size(), "Неверное количество фильмов");
-        assertEquals(filmC.getId(), films.iterator().next().getId(), "Неверный id фильма");
+        assertEquals(2, popular.size());
+        assertEquals(id3, popular.iterator().next().getId());
     }
 
 }

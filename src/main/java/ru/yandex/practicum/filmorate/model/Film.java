@@ -46,7 +46,7 @@ public class Film {
                 .build();
 
         Film film = new Film();
-        film.setName("Название фильма " + RandomGenerator.getDefault().nextInt(0, 1000));
+        film.setName("Название фильма " + RandomGenerator.getDefault().nextInt(0, 10000));
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
         film.setMpa(mpa);

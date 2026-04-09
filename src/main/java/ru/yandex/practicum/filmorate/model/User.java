@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.enums.TypeFriendship;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.random.RandomGenerator;
 
 @Data
 public class User {
@@ -31,10 +32,11 @@ public class User {
 
     public static User randomUser() {
         User user = new User();
-        user.setEmail("test@email.com");
-        user.setLogin("loginUser");
-        user.setName("nameUser");
-
+        int rand = RandomGenerator.getDefault().nextInt(0, 10000);
+        user.setEmail("test" + rand + "@email.com");
+        user.setLogin("loginUser" + rand);
+        user.setName("nameUser" + rand);
+        user.setBirthday(LocalDate.now().minusYears(20)); // по умолчанию 20 лет
         return user;
     }
 }
