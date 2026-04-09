@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.random.RandomGenerator;
+import java.util.stream.Collectors;
 
 
 @Data
@@ -40,8 +41,8 @@ public class Film {
         final LocalDate releaseDateOfFirstFilm = LocalDate.of(1895, 12, 28);
 
         Mpa mpa = Mpa.builder()
-                .id(RandomGenerator.getDefault().nextInt(1, 6)) // случайный рейтинг
-                .name("")
+                .id(3)
+                .name("PG-13")
                 .build();
 
         Film film = new Film();
@@ -49,6 +50,13 @@ public class Film {
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
         film.setMpa(mpa);
+
+        List<Genre> genres = List.of(
+                new Genre(1L, "Комедия"),
+                new Genre(2L, "Драма"),
+                new Genre(3L, "Мультфильм")
+        );
+        film.setGenres(genres.stream().distinct().collect(Collectors.toList()));
 
         return film;
     }

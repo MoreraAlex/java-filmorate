@@ -40,6 +40,7 @@ public class UserService {
 
     public void addFriend(Long id, Long friendId) throws NotFoundException, ValidationException {
         userStorage.addFriend(id, friendId);
+        userStorage.addFriend(friendId, id);
     }
 
     public void removeFriend(Long id, Long friendId) throws NotFoundException, ValidationException {
