@@ -10,10 +10,14 @@ import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 @Slf4j
@@ -75,9 +79,12 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         film.setId(id);
 
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            List<Object[]> batchArgs = film.getGenres().stream()
-                    .map(g -> new Object[]{id, g.getId()})
-                    .toList();
+            var ids = film.getGenres().stream()
+                    .map(Genre::getId).collect(Collectors.toSet());
+
+            List<Object[]> batchArgs = ids.stream()
+                    .map(g -> new Object[]{id, g})
+                    .collect(Collectors.toList());
 
             jdbc.batchUpdate(INSERT_FILM_GENRE_QUERY, batchArgs);
         }

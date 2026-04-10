@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -16,6 +17,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -100,6 +102,9 @@ class FilmorateApplicationTests {
     @Test
     void filmController_create_returnFilmWithId() {
         Film film = randomGeneratedFilm();
+        Genre genre1 = new Genre(1L, "Комедия");
+        Genre genre2 = new Genre(1L, "Комедия");
+        Genre genre3 = new Genre(3L, "Ntcn");
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 200; i++) {
             stringBuilder.append("a");
@@ -108,6 +113,7 @@ class FilmorateApplicationTests {
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
         film.setMpa(new Mpa().setId(1));
+        film.setGenres(List.of(genre1, genre2,genre3));
 
         Film newFilm = (filmController.create(film)).getBody();
 
@@ -210,12 +216,16 @@ class FilmorateApplicationTests {
         film.setName(stringBuilder.toString());
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
+        Genre genre1 = new Genre(1L, "Комедия");
+        Genre genre2 = new Genre(1L, "Комедия");
+        Genre genre3 = new Genre(3L, "Ntcn");
 
         Film createdFilm = filmController.create(film).getBody();
 
         Film updateFilm = randomGeneratedFilm();
         updateFilm.setId(createdFilm.getId());
         updateFilm.setDescription("Описание");
+        updateFilm.setGenres(List.of(genre1, genre2,genre3));
         Film updatedFilm = filmController.update(updateFilm).getBody();
 
         assertEquals("Описание", updatedFilm.getDescription(), "Фильмы не равны");
