@@ -25,13 +25,11 @@ public class FilmRowMapper implements RowMapper<Film> {
         film.setDuration(rs.getInt("duration"));
         try {
             rs.findColumn("ratingName");
-            Mpa mpa = Mpa.builder()
-                    .id(rs.getInt("rating"))
-                    .name(rs.getString("ratingName"))
-                    .build();
+            Mpa mpa = Mpa.builder().id(rs.getInt("rating")).name(rs.getString("ratingName")).build();
             film.setMpa(mpa);
 
-        } catch (Exception ignore){}
+        } catch (Exception ignore) {
+        }
 
         return film;
     }
