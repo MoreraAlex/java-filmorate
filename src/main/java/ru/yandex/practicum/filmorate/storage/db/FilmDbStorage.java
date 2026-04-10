@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 @Primary
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
-    @Autowired
-    private GenreDbStorage genreDbStorage;
+//    @Autowired
+//    private GenreDbStorage genreDbStorage;
 
     private static final String FILM_FIND_GENRES = """
             SELECT g.* FROM genres g
@@ -144,8 +144,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             log.warn("findFilmById: NotFoundException: {}", message);
             return new NotFoundException(message);
         });
-        List<Genre> genres = genreDbStorage.findGenresByFilmId(id);
-        film.setGenres(genres);
+//        List<Genre> genres = genreDbStorage.findGenresByFilmId(id);
+//        film.setGenres(genres);
         return film;
     }
 
