@@ -25,6 +25,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.ValidateFilm;
 import ru.yandex.practicum.filmorate.storage.ValidateUser;
 import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.db.UserDbStorage;
 
 import java.time.LocalDate;
@@ -47,7 +48,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         UserRowMapper.class,
         ValidateUser.class,
         MpaRepository.class,
-        MpaRowMapper.class
+        MpaRowMapper.class,
+        GenreDbStorage.class
 })
 class FilmDbStorageTest {
 
@@ -195,7 +197,7 @@ class FilmDbStorageTest {
     @TestConfiguration
     static class TestConfig {
         @Bean
-        @Qualifier("userDbStorage")  // ← это важно!
+        @Qualifier("userDbStorage")
         public UserStorage userDbStorage(JdbcTemplate jdbc, UserRowMapper userRowMapper, ValidateUser validateUser) {
             return new UserDbStorage(jdbc, userRowMapper, validateUser);
         }

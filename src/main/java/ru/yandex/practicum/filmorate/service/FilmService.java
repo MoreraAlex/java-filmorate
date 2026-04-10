@@ -7,9 +7,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.ValidateFilm;
-import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
 
 import java.util.Collection;
 
@@ -17,14 +17,14 @@ import java.util.Collection;
 @Slf4j
 public class FilmService {
 
-    private final FilmDbStorage filmStorage;
+    private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final GenreService genreService;
     private final MpaService mpaService;
     private final ValidateFilm validateFilm;
 
     @Autowired
-    public FilmService(FilmDbStorage filmStorage, UserStorage userStorage, GenreService genreService, MpaService mpaService, ValidateFilm validateFilm) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage, GenreService genreService, MpaService mpaService, ValidateFilm validateFilm) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.genreService = genreService;
