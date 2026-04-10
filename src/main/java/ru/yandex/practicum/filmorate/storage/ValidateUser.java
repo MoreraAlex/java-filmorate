@@ -3,12 +3,14 @@ package ru.yandex.practicum.filmorate.storage;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Set;
 
+@Primary
 @Component
 @RequiredArgsConstructor
 public class ValidateUser {

@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import org.springframework.context.annotation.Primary;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 
+@Primary
 public interface UserStorage {
     User addUser(User user);
 

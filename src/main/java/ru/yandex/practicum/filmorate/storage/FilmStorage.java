@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import org.springframework.context.annotation.Primary;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 
+@Primary
 public interface FilmStorage {
     Film addFilm(Film film);
 
