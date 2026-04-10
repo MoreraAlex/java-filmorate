@@ -23,34 +23,26 @@ import java.util.stream.Collectors;
 @Primary
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
-//    @Autowired
-//    private GenreDbStorage genreDbStorage;
-
     private static final String FILM_FIND_GENRES = """
             SELECT g.* FROM genres g
             LEFT JOIN film_genres f
             ON f.genre_id = g.id
             WHERE f.film_id=?
             """;
-
     private static final String INSERT_QUERY = """
             INSERT INTO films (name, description, releaseDate, duration, rating)
             VALUES (?, ?, ?, ?, ?)
             """;
-
     private static final String FIND_ALL_QUERY = "SELECT * FROM films";
-
     private static final String UPDATE_QUERY = """
             UPDATE films SET name=?, description=?, releaseDate=?, duration=?, rating=?
             WHERE id=?
             """;
-
     private static final String FIND_BY_ID_QUERY = """
             SELECT f.*, r.rating AS ratingName FROM films f
             LEFT JOIN ratings r ON r.id = f.rating
             WHERE f.id = ?
             """;
-
     private static final String FIND_POPULAR_QUERY = """
             SELECT f.*, COUNT(fl.user_id) AS likes_count
             FROM films f
@@ -59,21 +51,14 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             ORDER BY likes_count DESC
             LIMIT ?
             """;
-
-    private static final String INSERT_LIKE_QUERY =
-            "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
-
-    private static final String DELETE_LIKE_QUERY =
-            "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
-
-    private static final String INSERT_FILM_GENRE_QUERY =
-            "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+    private static final String INSERT_LIKE_QUERY = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
+    private static final String DELETE_LIKE_QUERY = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
+    private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+    @Autowired
+    private GenreDbStorage genreDbStorage;
 
     @Autowired
-    public FilmDbStorage(
-            JdbcTemplate jdbc,
-            RowMapper<Film> mapper
-    ) {
+    public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper, Film.class);
     }
 
@@ -81,24 +66,14 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public Film addFilm(Film film) {
         log.info("Creating film: {}", film);
 
-        long id = insert(
-                INSERT_QUERY,
-                film.getName(),
-                film.getDescription(),
-                film.getReleaseDate(),
-                film.getDuration(),
-                film.getMpa().getId()
-        );
+        long id = insert(INSERT_QUERY, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId());
 
         film.setId(id);
 
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            var ids = film.getGenres().stream()
-                    .map(Genre::getId).collect(Collectors.toSet());
+            var ids = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
 
-            List<Object[]> batchArgs = ids.stream()
-                    .map(g -> new Object[]{id, g})
-                    .collect(Collectors.toList());
+            List<Object[]> batchArgs = ids.stream().map(g -> new Object[]{id, g}).collect(Collectors.toList());
 
             jdbc.batchUpdate(INSERT_FILM_GENRE_QUERY, batchArgs);
         }
@@ -115,15 +90,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         UpdateFilmRequest updateFilmRequest = FilmMapper.mapToUpdateFilmRequest(film);
         FilmMapper.updateFilmFields(updatedFilm, updateFilmRequest);
 
-        update(
-                UPDATE_QUERY,
-                updatedFilm.getName(),
-                updatedFilm.getDescription(),
-                updatedFilm.getReleaseDate(),
-                updatedFilm.getDuration(),
-                updatedFilm.getMpa().getId(),
-                updatedFilm.getId()
-        );
+        update(UPDATE_QUERY, updatedFilm.getName(), updatedFilm.getDescription(), updatedFilm.getReleaseDate(), updatedFilm.getDuration(), updatedFilm.getMpa().getId(), updatedFilm.getId());
 
         log.info("Film updated: {}", updatedFilm);
         return updatedFilm;
@@ -144,8 +111,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             log.warn("findFilmById: NotFoundException: {}", message);
             return new NotFoundException(message);
         });
-//        List<Genre> genres = genreDbStorage.findGenresByFilmId(id);
-//        film.setGenres(genres);
+        List<Genre> genres = genreDbStorage.findGenresByFilmId(id);
+        film.setGenres(genres);
         return film;
     }
 
