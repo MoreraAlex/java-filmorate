@@ -113,7 +113,7 @@ class FilmorateApplicationTests {
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(120);
         film.setMpa(new Mpa().setId(1));
-        film.setGenres(List.of(genre1, genre2,genre3));
+        film.setGenres(List.of(genre1, genre2, genre3));
 
         Film newFilm = (filmController.create(film)).getBody();
 
@@ -225,7 +225,7 @@ class FilmorateApplicationTests {
         Film updateFilm = randomGeneratedFilm();
         updateFilm.setId(createdFilm.getId());
         updateFilm.setDescription("Описание");
-        updateFilm.setGenres(List.of(genre1, genre2,genre3));
+        updateFilm.setGenres(List.of(genre1, genre2, genre3));
         Film updatedFilm = filmController.update(updateFilm).getBody();
 
         assertEquals("Описание", updatedFilm.getDescription(), "Фильмы не равны");
