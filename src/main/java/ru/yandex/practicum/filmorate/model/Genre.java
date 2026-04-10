@@ -9,4 +9,12 @@ public class Genre {
 
     @NotBlank(message = "Название не может быть пустым")
     private String name;
+
+    public Genre(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public Genre() {
+    }
 }
