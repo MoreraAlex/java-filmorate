@@ -30,15 +30,13 @@ import static ru.yandex.practicum.filmorate.model.User.randomUser;
 @SpringBootTest
 class FilmorateApplicationTests {
 
-    @Autowired
-    private FilmController filmController;
-
-    @Autowired
-    private UserController userController;
-
-    private UserStorage userStorage;
     private final int maxLengthOfDescription = 200;
     private final LocalDate releaseDateOfFirstFilm = LocalDate.of(1895, 12, 28);
+    @Autowired
+    private FilmController filmController;
+    @Autowired
+    private UserController userController;
+    private UserStorage userStorage;
 
     @Test
     void filmController_create_mustBeValidationException() throws ValidationException {
@@ -46,41 +44,19 @@ class FilmorateApplicationTests {
         film.setName("Название фильма");
         film.setReleaseDate(releaseDateOfFirstFilm);
         film.setDuration(0);
-        Exception exception = assertThrows(
-                ValidationException.class,
-                () -> filmController.create(film),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Продолжительность фильма должна быть положительным числом",
-                exception.getMessage()
-        );
+        Exception exception = assertThrows(ValidationException.class, () -> filmController.create(film), "Вернулось не ValidationException");
+        assertEquals("Продолжительность фильма должна быть положительным числом", exception.getMessage());
 
         film.setName(null);
         film.setDuration(120);
-        exception = assertThrows(
-                ValidationException.class,
-                () -> filmController.create(film),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Название не может быть пустым",
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> filmController.create(film), "Вернулось не ValidationException");
+        assertEquals("Название не может быть пустым", exception.getMessage());
 
         film.setName("Name");
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
         film.setName("Название фильма");
-        exception = assertThrows(
-                ValidationException.class,
-                () -> filmController.create(film),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Год релиза должен быть после " +
-                        releaseDateOfFirstFilm.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> filmController.create(film), "Вернулось не ValidationException");
+        assertEquals("Год релиза должен быть после " + releaseDateOfFirstFilm.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), exception.getMessage());
 
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
         StringBuilder stringBuilder = new StringBuilder();
@@ -88,15 +64,8 @@ class FilmorateApplicationTests {
             stringBuilder.append("a");
         }
         film.setDescription(stringBuilder.toString());
-        exception = assertThrows(
-                ValidationException.class,
-                () -> filmController.create(film),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Описание не должно превышать 200 символов",
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> filmController.create(film), "Вернулось не ValidationException");
+        assertEquals("Описание не должно превышать 200 символов", exception.getMessage());
     }
 
     @Test
@@ -117,11 +86,7 @@ class FilmorateApplicationTests {
 
         Film newFilm = (filmController.create(film)).getBody();
 
-        assertEquals(
-                1,
-                newFilm.getId(),
-                "Неверный id фильма"
-        );
+        assertEquals(1, newFilm.getId(), "Неверный id фильма");
     }
 
     @Test
@@ -138,15 +103,8 @@ class FilmorateApplicationTests {
         filmController.create(film);
         film.setId((long) 2);
 
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> filmController.update(film),
-                "Вернулось не NotFoundException"
-        );
-        assertEquals(
-                "Фильм с id = " + film.getId() + " не найден",
-                exception.getMessage()
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> filmController.update(film), "Вернулось не NotFoundException");
+        assertEquals("Фильм с id = " + film.getId() + " не найден", exception.getMessage());
     }
 
     @Test
@@ -156,56 +114,27 @@ class FilmorateApplicationTests {
         filmController.create(film);
         film.setDuration(0);
 
-        Exception exception = assertThrows(
-                ValidationException.class,
-                () -> filmController.update(film),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Продолжительность фильма должна быть положительным числом",
-                exception.getMessage()
-        );
+        Exception exception = assertThrows(ValidationException.class, () -> filmController.update(film), "Вернулось не ValidationException");
+        assertEquals("Продолжительность фильма должна быть положительным числом", exception.getMessage());
 
         film.setName(null);
         film.setDuration(120);
-        exception = assertThrows(
-                ValidationException.class,
-                () -> filmController.update(film),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Название не может быть пустым",
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> filmController.update(film), "Вернулось не ValidationException");
+        assertEquals("Название не может быть пустым", exception.getMessage());
 
         film.setName("Name");
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
         film.setName("Название фильма");
-        exception = assertThrows(
-                ValidationException.class,
-                () -> filmController.update(film),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Год релиза должен быть после " +
-                        releaseDateOfFirstFilm.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> filmController.update(film), "Вернулось не ValidationException");
+        assertEquals("Год релиза должен быть после " + releaseDateOfFirstFilm.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), exception.getMessage());
 
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 201; i++) {
             stringBuilder.append("a");
         }
         film.setDescription(stringBuilder.toString());
-        exception = assertThrows(
-                ValidationException.class,
-                () -> filmController.update(film),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Описание не должно превышать " + maxLengthOfDescription + " символов",
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> filmController.update(film), "Вернулось не ValidationException");
+        assertEquals("Описание не должно превышать " + maxLengthOfDescription + " символов", exception.getMessage());
     }
 
     @Test
@@ -258,6 +187,7 @@ class FilmorateApplicationTests {
         standardFilm.setReleaseDate(releaseDateOfFirstFilm);
         standardFilm.setDuration(120);
         standardFilm.setId(film.getId());
+        standardFilm.setGenres(film.getGenres());
 
         assertEquals(film, standardFilm, "Фильмы не равны");
 
@@ -293,6 +223,7 @@ class FilmorateApplicationTests {
         Long id2 = userController.create(user2).getBody().getId();
 
         userController.addFriend(id1, id2);
+        userController.addFriend(id2, id1);
 
         Collection<User> friends1 = userController.getUserFriends(id1).getBody();
         Collection<User> friends2 = userController.getUserFriends(id2).getBody();
@@ -301,6 +232,7 @@ class FilmorateApplicationTests {
         assertEquals(1, friends2.size());
 
         userController.removeFriend(id1, id2);
+        userController.removeFriend(id2, id1);
 
         assertEquals(0, userController.getUserFriends(id1).getBody().size());
         assertEquals(0, userController.getUserFriends(id2).getBody().size());
@@ -367,26 +299,12 @@ class FilmorateApplicationTests {
         User user = new User();
         user.setLogin("login");
         user.setBirthday(LocalDate.now().plusDays(-1));
-        Exception exception = assertThrows(
-                ValidationException.class,
-                () -> userController.create(user),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Электронная почта не может быть пустой и должна содержать символ '@'",
-                exception.getMessage()
-        );
+        Exception exception = assertThrows(ValidationException.class, () -> userController.create(user), "Вернулось не ValidationException");
+        assertEquals("Электронная почта не может быть пустой и должна содержать символ '@'", exception.getMessage());
 
         user.setEmail("email");
-        exception = assertThrows(
-                ValidationException.class,
-                () -> userController.create(user),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Электронная почта не может быть пустой и должна содержать символ '@'",
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> userController.create(user), "Вернулось не ValidationException");
+        assertEquals("Электронная почта не может быть пустой и должна содержать символ '@'", exception.getMessage());
 
     }
 
@@ -396,25 +314,11 @@ class FilmorateApplicationTests {
         user.setEmail("ss@ss.com");
         user.setBirthday(LocalDate.now().plusDays(-1));
 
-        Exception exception = assertThrows(
-                ValidationException.class,
-                () -> userController.create(user),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Логин не может быть пустым и содержать пробелы",
-                exception.getMessage()
-        );
+        Exception exception = assertThrows(ValidationException.class, () -> userController.create(user), "Вернулось не ValidationException");
+        assertEquals("Логин не может быть пустым и содержать пробелы", exception.getMessage());
         user.setLogin("log in");
-        exception = assertThrows(
-                ValidationException.class,
-                () -> userController.create(user),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Логин не может быть пустым и содержать пробелы",
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> userController.create(user), "Вернулось не ValidationException");
+        assertEquals("Логин не может быть пустым и содержать пробелы", exception.getMessage());
 
     }
 
@@ -424,15 +328,8 @@ class FilmorateApplicationTests {
         user.setEmail("ss@ss.com");
         user.setLogin("login");
         user.setBirthday(LocalDate.now().plusDays(1));
-        Exception exception = assertThrows(
-                ValidationException.class,
-                () -> userController.create(user),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Дата рождения не может быть в будущем",
-                exception.getMessage()
-        );
+        Exception exception = assertThrows(ValidationException.class, () -> userController.create(user), "Вернулось не ValidationException");
+        assertEquals("Дата рождения не может быть в будущем", exception.getMessage());
     }
 
     @Test
@@ -452,15 +349,8 @@ class FilmorateApplicationTests {
         userController.create(user);
         user.setId((long) 2);
 
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> (userController.update(user)).getBody(),
-                "Вернулось не NotFoundException"
-        );
-        assertEquals(
-                "Пользователь с id = " + user.getId() + " не найден",
-                exception.getMessage()
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> (userController.update(user)).getBody(), "Вернулось не NotFoundException");
+        assertEquals("Пользователь с id = " + user.getId() + " не найден", exception.getMessage());
     }
 
     @Test
@@ -471,39 +361,18 @@ class FilmorateApplicationTests {
         userController.create(user);
 
         user.setEmail("ccdd.com");
-        Exception exception = assertThrows(
-                ValidationException.class,
-                () -> userController.update(user),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Электронная почта не может быть пустой и должна содержать символ '@'",
-                exception.getMessage()
-        );
+        Exception exception = assertThrows(ValidationException.class, () -> userController.update(user), "Вернулось не ValidationException");
+        assertEquals("Электронная почта не может быть пустой и должна содержать символ '@'", exception.getMessage());
 
         user.setEmail("cc@dd.com");
         user.setLogin("log in");
-        exception = assertThrows(
-                ValidationException.class,
-                () -> userController.create(user),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Логин не может быть пустым и содержать пробелы",
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> userController.create(user), "Вернулось не ValidationException");
+        assertEquals("Логин не может быть пустым и содержать пробелы", exception.getMessage());
 
         user.setLogin("login");
         user.setBirthday(LocalDate.now().plusDays(1));
-        exception = assertThrows(
-                ValidationException.class,
-                () -> userController.create(user),
-                "Вернулось не ValidationException"
-        );
-        assertEquals(
-                "Дата рождения не может быть в будущем",
-                exception.getMessage()
-        );
+        exception = assertThrows(ValidationException.class, () -> userController.create(user), "Вернулось не ValidationException");
+        assertEquals("Дата рождения не может быть в будущем", exception.getMessage());
     }
 
     @Test
@@ -644,42 +513,24 @@ class FilmorateApplicationTests {
 
         User findUser = (userController.getUserById(user.getId()).getBody());
 
-        assertEquals(
-                user.getId(),
-                findUser.getId(),
-                "Неверный id пользователя"
-        );
+        assertEquals(user.getId(), findUser.getId(), "Неверный id пользователя");
     }
 
     @Test
     void userController_getUserById_getUserByIncorrectId_mustBeNotFoundException() {
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> userController.getUserById((long) 1),
-                "Вернулось не NotFoundException"
-        );
-        assertEquals(
-                "Пользователь с id = 1 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> userController.getUserById((long) 1), "Вернулось не NotFoundException");
+        assertEquals("Пользователь с id = 1 не найден", exception.getMessage(), "Не верный текст сообщения");
     }
 
     @Test
     void userController_addFriend_addFriendByIncorrectId() {
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> userController.addFriend(1L, 2L)
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> userController.addFriend(1L, 2L));
         assertEquals("Пользователь с id = 1 не найден", exception.getMessage());
 
         User user = User.randomUser();
         User created = userController.create(user).getBody();
 
-        exception = assertThrows(
-                NotFoundException.class,
-                () -> userController.addFriend(created.getId(), 2L)
-        );
+        exception = assertThrows(NotFoundException.class, () -> userController.addFriend(created.getId(), 2L));
         assertEquals("Пользователь с id = 2 не найден", exception.getMessage());
     }
 
@@ -693,35 +544,22 @@ class FilmorateApplicationTests {
 
         userController.create(user2);
         userController.addFriend(user1.getId(), user2.getId());
+        userController.addFriend(user2.getId(), user2.getId());
 
-        assertEquals(
-                1,
-                (userController.getUserById((user1.getId()))).getBody().getFriends().size(),
-                "Неверное количество друзей"
-        );
+        assertEquals(1, (userController.getUserById((user1.getId()))).getBody().getFriends().size(), "Неверное количество друзей");
 
-        assertEquals(
-                1,
-                (userController.getUserById(user2.getId())).getBody().getFriends().size(),
-                "Неверное количество друзей"
-        );
+        assertEquals(1, (userController.getUserById(user2.getId())).getBody().getFriends().size(), "Неверное количество друзей");
     }
 
     @Test
     void userController_removeFriend_addFriendByIncorrectId() {
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> userController.removeFriend(1L, 2L)
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> userController.removeFriend(1L, 2L));
         assertEquals("Пользователь с id = 1 не найден", exception.getMessage());
 
         User user = User.randomUser();
         User createdUser = userController.create(user).getBody();
 
-        exception = assertThrows(
-                NotFoundException.class,
-                () -> userController.removeFriend(createdUser.getId(), 2L)
-        );
+        exception = assertThrows(NotFoundException.class, () -> userController.removeFriend(createdUser.getId(), 2L));
         assertEquals("Пользователь с id = 2 не найден", exception.getMessage());
     }
 
@@ -753,30 +591,17 @@ class FilmorateApplicationTests {
         userController.addFriend(user1.getId(), user2.getId());
         userController.addFriend(user1.getId(), user3.getId());
 
-        assertEquals(2,
-                (userController.getUserById(user1.getId())).getBody().getFriends().size(),
-                "Неверное количество друзей"
-        );
+        assertEquals(2, (userController.getUserById(user1.getId())).getBody().getFriends().size(), "Неверное количество друзей");
 
         userController.removeFriend(user1.getId(), user3.getId());
 
-        assertEquals(1,
-                (userController.getUserById(user1.getId())).getBody().getFriends().size(),
-                "Неверное количество друзей"
-        );
-        assertEquals(0,
-                (userController.getUserById(user3.getId())).getBody().getFriends().size(),
-                "Неверное количество друзей"
-        );
+        assertEquals(1, (userController.getUserById(user1.getId())).getBody().getFriends().size(), "Неверное количество друзей");
+        assertEquals(0, (userController.getUserById(user3.getId())).getBody().getFriends().size(), "Неверное количество друзей");
     }
 
     @Test
     void userController_getUserFriends_incorrectionId_mustNotFoundException() {
-        assertThrows(
-                NotFoundException.class,
-                () -> userController.getUserFriends((long) 1),
-                "Вернулось не NotFoundException"
-        );
+        assertThrows(NotFoundException.class, () -> userController.getUserFriends((long) 1), "Вернулось не NotFoundException");
     }
 
     @Test
@@ -797,19 +622,13 @@ class FilmorateApplicationTests {
 
     @Test
     void userController_getCommonFriendsByIncorrectId() {
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> userController.addFriend(1L, 2L)
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> userController.addFriend(1L, 2L));
         assertEquals("Пользователь с id = 1 не найден", exception.getMessage());
 
         User user = User.randomUser();
         userController.create(user);
 
-        exception = assertThrows(
-                NotFoundException.class,
-                () -> userController.getCommonFriends(user.getId(), 2L)
-        );
+        exception = assertThrows(NotFoundException.class, () -> userController.getCommonFriends(user.getId(), 2L));
         assertEquals("Пользователь с id = 2 не найден", exception.getMessage());
     }
 
@@ -823,6 +642,8 @@ class FilmorateApplicationTests {
         userController.addFriend(user1.getId(), user2.getId());
         userController.addFriend(user1.getId(), user3.getId());
         userController.addFriend(user2.getId(), user3.getId());
+        userController.addFriend(user3.getId(), user1.getId());
+        userController.addFriend(user3.getId(), user2.getId());
 
         Collection<User> common = userController.getCommonFriends(user1.getId(), user3.getId()).getBody();
 
@@ -845,31 +666,15 @@ class FilmorateApplicationTests {
 
     @Test
     void filmController_getUFilmById_getByIncorrectId_mustBeNotFoundException() {
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> filmController.getFilmById((long) 1),
-                "Вернулось не NotFoundException"
-        );
-        assertEquals(
-                "Фильм с id = 1 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> filmController.getFilmById((long) 1), "Вернулось не NotFoundException");
+        assertEquals("Фильм с id = 1 не найден", exception.getMessage(), "Не верный текст сообщения");
     }
 
 
     @Test
     void filmController_addLike_getByIncorrectId_mustBeNotFoundException() {
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> filmController.addLike((long) 1, (long) 1),
-                "Вернулось не NotFoundException"
-        );
-        assertEquals(
-                "Фильм с id = 1 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> filmController.addLike((long) 1, (long) 1), "Вернулось не NotFoundException");
+        assertEquals("Фильм с id = 1 не найден", exception.getMessage(), "Не верный текст сообщения");
 
         Film film = randomGeneratedFilm();
         film.setName("Название фильма");
@@ -878,30 +683,14 @@ class FilmorateApplicationTests {
 
         filmController.create(film);
 
-        exception = assertThrows(
-                NotFoundException.class,
-                () -> filmController.addLike(film.getId(), (long) 1),
-                "Вернулось не NotFoundException"
-        );
-        assertEquals(
-                "Пользователь с id = 1 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        exception = assertThrows(NotFoundException.class, () -> filmController.addLike(film.getId(), (long) 1), "Вернулось не NotFoundException");
+        assertEquals("Пользователь с id = 1 не найден", exception.getMessage(), "Не верный текст сообщения");
     }
 
     @Test
     void filmController_removeLike_getByIncorrectId_mustBeNotFoundException() {
-        Exception exception = assertThrows(
-                NotFoundException.class,
-                () -> filmController.removeLike((long) 1, (long) 1),
-                "Вернулось не NotFoundException"
-        );
-        assertEquals(
-                "Фильм с id = 1 не найден",
-                exception.getMessage(),
-                "Не верный текст сообщения"
-        );
+        Exception exception = assertThrows(NotFoundException.class, () -> filmController.removeLike((long) 1, (long) 1), "Вернулось не NotFoundException");
+        assertEquals("Фильм с id = 1 не найден", exception.getMessage(), "Не верный текст сообщения");
     }
 
     @Test

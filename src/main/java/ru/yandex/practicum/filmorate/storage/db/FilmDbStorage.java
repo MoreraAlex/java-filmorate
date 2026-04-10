@@ -21,6 +21,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
+    @Autowired
+    private GenreDbStorage genreDbStorage;
+
+    private static final String FILM_FIND_GENRES = """
+            SELECT g.* FROM genres g
+            LEFT JOIN film_genres f
+            ON f.genre_id = g.id
+            WHERE f.film_id=?
+            """;
+
     private static final String INSERT_QUERY = """
             INSERT INTO films (name, description, releaseDate, duration, rating)
             VALUES (?, ?, ?, ?, ?)
@@ -33,7 +43,11 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             WHERE id=?
             """;
 
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = ?";
+    private static final String FIND_BY_ID_QUERY = """
+            SELECT f.*, r.rating AS ratingName FROM films f
+            LEFT JOIN ratings r ON r.id = f.rating
+            WHERE f.id = ?
+            """;
 
     private static final String FIND_POPULAR_QUERY = """
             SELECT f.*, COUNT(fl.user_id) AS likes_count
@@ -123,11 +137,14 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public Film findFilmById(Long id) {
         log.info("Find film by id: {}", id);
 
-        return findOne(FIND_BY_ID_QUERY, id).orElseThrow(() -> {
+        Film film = findOne(FIND_BY_ID_QUERY, id).orElseThrow(() -> {
             String message = "Фильм с id = " + id + " не найден";
             log.warn("findFilmById: NotFoundException: {}", message);
             return new NotFoundException(message);
         });
+        List<Genre> genres = genreDbStorage.findGenresByFilmId(id);
+        film.setGenres(genres);
+        return film;
     }
 
     @Override

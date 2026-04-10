@@ -70,14 +70,12 @@ public class UserController {
     public void addFriend(@PathVariable Long id,
                           @PathVariable Long friendId) {
         userService.addFriend(id, friendId);
-        userService.addFriend(friendId, id);
     }
 
     @DeleteMapping({"/{id}/friends/{friendId}"})
     public void removeFriend(@PathVariable Long id,
                              @PathVariable Long friendId) {
         userService.removeFriend(id, friendId);
-        userService.removeFriend(friendId, id);
     }
 
 }
